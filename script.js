@@ -105,4 +105,4 @@ function toggleVisibility(element) {
 }
 
 // Load the CSV data from the given file path
-loadCSVData('../data/scholar_results.csv');
+loadCSVData('scholar_results.csv');
