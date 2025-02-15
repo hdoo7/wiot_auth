@@ -48,36 +48,56 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'line',  // Change chart type to line
+                type: 'line',  // Change chart type to 'line'
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',  // Light blue color for the dots
-                        borderColor: 'rgba(54, 162, 235, 1)',  // Dark blue color for the line
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 2,
-                        fill: false,  // Do not fill the area under the line
-                        pointRadius: 5,  // Size of the dots on the line
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',  // Dot color
-                        pointBorderColor: 'rgba(54, 162, 235, 1)',  // Dot border color
+                        fill: true,
+                        pointStyle: 'circle',  // Style the points on the line
+                        pointRadius: 6,  // Make the points larger
+                        pointBackgroundColor: 'orange',  // Orange dots
+                        pointBorderWidth: 2,
+                        tension: 0.4  // Smooth the line
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Count'
-                            }
+                            beginAtZero: true
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Year'
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 20
                             }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.raw;  // Show the count in the tooltip
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value;  // Display count as the label
+                            },
+                            color: 'gray',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            },
+                            offset: 10
                         }
                     }
                 }
