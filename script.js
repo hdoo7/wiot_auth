@@ -169,7 +169,7 @@ window.onload = function () {
                 th.style.border = "1px solid #ddd";
                 th.style.padding = "8px";
                 th.style.backgroundColor = "#ffffff"; 
-                th.style.color = "white";
+                th.style.color = "black";
                 th.style.fontWeight = "600";
                 headerRow.appendChild(th);
             });
