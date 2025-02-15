@@ -75,24 +75,28 @@ window.onload = function () {
 
     function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2 style="color: #333;">Publications for ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h2 style="color: #4A90E2; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 24px;">Publications for ${year}:</h2>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
         list.style.padding = "0";
+        list.style.marginTop = "20px";
 
         Object.entries(groupData).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong style="color: #222; font-size: 16px;">${group}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong style="font-size: 18px; color: #333;">${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.padding = "8px";
-            groupItem.style.margin = "5px 0";
-            groupItem.style.backgroundColor = "#f7f7f7";
-            groupItem.style.borderRadius = "5px";
+            groupItem.style.padding = "12px";
+            groupItem.style.margin = "8px 0";
+            groupItem.style.backgroundColor = "#f4f7fa";
+            groupItem.style.borderRadius = "8px";
+            groupItem.style.transition = "background-color 0.3s ease, transform 0.3s ease";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
             });
-
+            groupItem.onmouseover = () => groupItem.style.backgroundColor = "#e3e9f0";
+            groupItem.onmouseout = () => groupItem.style.backgroundColor = "#f4f7fa";
+            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
             list.appendChild(groupItem);
         });
 
@@ -105,22 +109,25 @@ window.onload = function () {
             existingList.remove();
         } else {
             const subGroupList = document.createElement('ul');
-            subGroupList.style.marginLeft = "10px";
-            subGroupList.style.padding = "5px";
+            subGroupList.style.marginLeft = "20px";
+            subGroupList.style.padding = "8px";
             subGroupList.style.listStyleType = "none";
 
             Object.entries(subGroups).forEach(([subGroup, data]) => {
                 const subGroupItem = document.createElement('li');
-                subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
+                subGroupItem.innerHTML = `<strong style="font-size: 16px; color: #5A5A5A;">${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.padding = "6px";
-                subGroupItem.style.margin = "3px 0";
-                subGroupItem.style.backgroundColor = "#e9ecef";
-                subGroupItem.style.borderRadius = "5px";
+                subGroupItem.style.padding = "10px";
+                subGroupItem.style.margin = "6px 0";
+                subGroupItem.style.backgroundColor = "#f0f4f8";
+                subGroupItem.style.borderRadius = "6px";
+                subGroupItem.style.transition = "background-color 0.3s ease, transform 0.3s ease";
                 subGroupItem.addEventListener("click", function (event) {
                     event.stopPropagation();
                     toggleTable(subGroupItem, data.instances);
                 });
+                subGroupItem.onmouseover = () => subGroupItem.style.backgroundColor = "#e0e7f1";
+                subGroupItem.onmouseout = () => subGroupItem.style.backgroundColor = "#f0f4f8";
 
                 subGroupList.appendChild(subGroupItem);
             });
@@ -135,12 +142,12 @@ window.onload = function () {
             existingTable.remove();
         } else {
             const table = document.createElement('table');
-            table.style.marginTop = "10px";
+            table.style.marginTop = "15px";
             table.style.borderCollapse = "collapse";
-            table.style.width = "95%";
+            table.style.width = "98%";
             table.style.backgroundColor = "#ffffff";
-            table.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-            table.style.borderRadius = "5px";
+            table.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+            table.style.borderRadius = "8px";
             table.border = "1";
 
             const thead = document.createElement('thead');
@@ -149,9 +156,11 @@ window.onload = function () {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
-                th.style.padding = "8px";
+                th.style.padding = "12px";
                 th.style.backgroundColor = "#007bff";
                 th.style.color = "white";
+                th.style.fontSize = "16px";
+                th.style.textAlign = "center";
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -162,10 +171,10 @@ window.onload = function () {
                 const row = document.createElement('tr');
                 row.style.backgroundColor = "#f9f9f9";
                 row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 8px; max-width: 200px; word-wrap: break-word;">${instance.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">
-                        <a href="${instance.url}" target="_blank" style="color: #007bff; text-decoration: none;">[Link]</a>
+                    <td style="border: 1px solid #ddd; padding: 12px; word-wrap: break-word;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 12px; word-wrap: break-word;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">
+                        <a href="${instance.url}" target="_blank" style="color: #007bff; text-decoration: none; font-weight: bold;">[Link]</a>
                     </td>
                 `;
                 tbody.appendChild(row);
