@@ -61,11 +61,13 @@ window.onload = function () {
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,  // Allow manual size control
                     scales: {
                         y: {
                             beginAtZero: true
                         }
-                    },
+                    }
+                },
                     onClick: function (e) {
                         const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                         if (activePoints.length > 0) {
