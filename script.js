@@ -48,18 +48,15 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             const chart = new Chart(ctx, {
-                type: 'line',  // Changed from 'bar' to 'line'
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                        fill: false  // Ensures the area under the line is not filled
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
                     }]
                 },
                 options: {
