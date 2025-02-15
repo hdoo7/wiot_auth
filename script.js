@@ -95,7 +95,9 @@ window.onload = function () {
 
     function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
-        if (!existingList) {
+        if (existingList) {
+            existingList.remove(); // Collapse if already present
+        } else {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
 
@@ -119,9 +121,10 @@ window.onload = function () {
     function toggleTable(subGroupItem, instances) {
         let existingTable = subGroupItem.querySelector("table");
         if (existingTable) {
-            existingTable.remove(); // Collapse
+            existingTable.remove(); // Collapse the table if it's already open
         } else {
-            let previousTable = document.querySelector("table");
+            // Remove any previously opened table under the same subGroupItem
+            let previousTable = subGroupItem.parentNode.querySelector("table");
             if (previousTable) {
                 previousTable.remove();
             }
