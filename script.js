@@ -1,6 +1,6 @@
 window.onload = function () {
     // Fetch the CSV file and parse it
-    Papa.parse("merged_results.csv", {
+    Papa.parse("scholar_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
@@ -44,60 +44,94 @@ window.onload = function () {
         console.log("Labels:", labels);  // Check the labels for the x-axis
         console.log("Counts:", counts);  // Check the counts for the y-axis
 
-        // Create the plot if there is valid data
+        // Create the line chart
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'line',  // Explicitly set chart type to 'line'
+                type: 'line',  // Change chart type to 'line'
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderColor: 'purple',  // Line color
+                        backgroundColor: 'rgba(0,0,0,0)',  // Transparent fill
                         borderWidth: 2,
-                        fill: true,
-                        pointStyle: 'circle',  // Style the points on the line
-                        pointRadius: 6,  // Make the points larger
-                        pointBackgroundColor: 'orange',  // Orange dots
+                        tension: 0.4,  // Smooth curve
+                        pointStyle: 'circle',  // Markers as circles
+                        pointRadius: 6,
+                        pointBackgroundColor: 'orange',  // Marker color
                         pointBorderWidth: 2,
-                        tension: 0.4  // Smooth the line
+                        pointHoverBackgroundColor: 'yellow',  // Hover color for markers
+                        pointHoverBorderWidth: 2,
+                        fill: false,  // Do not fill under the line
+                        showLine: true,  // Display the line
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
-                        y: {
-                            beginAtZero: true
-                        },
                         x: {
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: { size: 16 }
+                            },
                             ticks: {
-                                autoSkip: true,
-                                maxTicksLimit: 20
+                                font: { size: 14 },
+                                autoSkip: true,  // Auto skip ticks to prevent crowding
+                                maxRotation: 0,
+                                minRotation: 0,
+                                align: 'end'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of Publications',
+                                font: { size: 16 }
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                font: { size: 14 },
                             }
                         }
                     },
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: function(tooltipItem) {
-                                    return tooltipItem.raw;  // Show the count in the tooltip
+                                label: function (context) {
+                                    return context.raw + ' publications';  // Custom tooltip formatting
                                 }
                             }
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: function(value) {
-                                return value;  // Display count as the label
-                            },
-                            color: 'gray',
-                            font: {
-                                weight: 'bold',
-                                size: 14
-                            },
-                            offset: 10
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4,  // Smooth line curve
+                        }
+                    },
+                    animation: {
+                        duration: 1000,  // Animation duration
+                        easing: 'easeOutBounce'
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            right: 20,
+                            bottom: 20,
+                            left: 20
+                        }
+                    },
+                    // Adding gridlines for better visual alignment
+                    scales: {
+                        y: {
+                            grid: {
+                                display: true,
+                                drawBorder: false,
+                                borderColor: 'rgba(0, 0, 0, 0.1)',
+                                lineWidth: 1,
+                            }
                         }
                     }
                 }
