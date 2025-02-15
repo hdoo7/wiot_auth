@@ -56,7 +56,7 @@ window.onload = function () {
 
                             const groupData = data.filter(item => item.year === clickedYear);
                             const groupCount = countGroupValues(groupData);
-                            displayGroupList(groupCount, clickedYear);
+                            displayGroupList(groupCount, clickedYear, data);
                         }
                     }
                 }
@@ -72,6 +72,9 @@ window.onload = function () {
         groupData.forEach(item => {
             const groupValue = item.group;
             const subGroupValue = item.sub_group;
+            const title = item.title;
+            const authors = item.authors;
+            const url = item.url;
 
             if (groupValue) {
                 if (!groupCount[groupValue]) {
@@ -81,9 +84,9 @@ window.onload = function () {
 
                 if (subGroupValue) {
                     if (!groupCount[groupValue].sub_groups[subGroupValue]) {
-                        groupCount[groupValue].sub_groups[subGroupValue] = 0;
+                        groupCount[groupValue].sub_groups[subGroupValue] = [];
                     }
-                    groupCount[groupValue].sub_groups[subGroupValue] += 1;
+                    groupCount[groupValue].sub_groups[subGroupValue].push({ title, authors, url });
                 }
             }
         });
@@ -91,9 +94,9 @@ window.onload = function () {
         return groupCount;
     }
 
-    function displayGroupList(groupCount, year) {
+    function displayGroupList(groupCount, year, data) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h2>Publications for Year ${year}:</h2>`;
 
         const list = document.createElement('ul');
 
@@ -101,7 +104,7 @@ window.onload = function () {
             const groupItem = document.createElement('li');
             groupItem.innerHTML = `<strong>${group}</strong>: ${data.count}`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.color = "blue";
+            groupItem.style.color = "black";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(group, data.sub_groups, this);
             });
@@ -121,13 +124,42 @@ window.onload = function () {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
 
-            Object.entries(subGroups).forEach(([subGroup, count]) => {
+            Object.entries(subGroups).forEach(([subGroup, instances]) => {
                 const subGroupItem = document.createElement('li');
-                subGroupItem.textContent = `${subGroup}: ${count}`;
+                subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${instances.length})`;
+                subGroupItem.style.cursor = "pointer";
+                subGroupItem.style.color = "green";
+                subGroupItem.addEventListener("click", function () {
+                    toggleInstanceList(subGroup, instances, this);
+                });
+
                 subGroupList.appendChild(subGroupItem);
             });
 
             groupItem.appendChild(subGroupList);
+        }
+    }
+
+    function toggleInstanceList(subGroup, instances, subGroupItem) {
+        let existingList = subGroupItem.querySelector("ul");
+
+        if (existingList) {
+            subGroupItem.removeChild(existingList); // Collapse if already expanded
+        } else {
+            const instanceList = document.createElement('ul');
+            instanceList.style.marginLeft = "40px";
+
+            instances.forEach(instance => {
+                const instanceItem = document.createElement('li');
+                instanceItem.innerHTML = `
+                    <strong>Title:</strong> ${instance.title} <br>
+                    <strong>Authors:</strong> ${instance.authors} <br>
+                    <strong>URL:</strong> <a href="${instance.url}" target="_blank">${instance.url}</a>
+                `;
+                instanceList.appendChild(instanceItem);
+            });
+
+            subGroupItem.appendChild(instanceList);
         }
     }
 };
