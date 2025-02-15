@@ -84,7 +84,7 @@ window.onload = function () {
 
         Object.entries(groupData).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong style="color: #333; font-size: 18px; font-weight: 500;">${group}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong style="color: #333; font-size: 14px; font-weight: 500;">${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.style.padding = "12px 20px";
             groupItem.style.margin = "8px 0";
@@ -167,7 +167,7 @@ window.onload = function () {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
-                th.style.padding = "12px";
+                th.style.padding = "8px";
                 th.style.backgroundColor = "#ffffff"; 
                 th.style.color = "white";
                 th.style.fontWeight = "600";
