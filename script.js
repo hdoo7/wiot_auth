@@ -1,6 +1,6 @@
 window.onload = function () {
     // Fetch the CSV file and parse it
-    Papa.parse("scholar_results.csv", {
+    Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
