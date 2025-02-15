@@ -72,9 +72,6 @@ window.onload = function () {
         groupData.forEach(item => {
             const groupValue = item.group;
             const subGroupValue = item.sub_group;
-            const title = item.title;
-            const authors = item.authors;
-            const url = item.url;
 
             if (groupValue) {
                 if (!groupCount[groupValue]) {
@@ -84,9 +81,15 @@ window.onload = function () {
 
                 if (subGroupValue) {
                     if (!groupCount[groupValue].sub_groups[subGroupValue]) {
-                        groupCount[groupValue].sub_groups[subGroupValue] = [];
+                        groupCount[groupValue].sub_groups[subGroupValue] = { count: 0, instances: [] };
                     }
-                    groupCount[groupValue].sub_groups[subGroupValue].push({ title, authors, url });
+                    groupCount[groupValue].sub_groups[subGroupValue].count += 1;
+
+                    groupCount[groupValue].sub_groups[subGroupValue].instances.push({
+                        title: item.title || "No Title",
+                        authors: item.authors || "Unknown Authors",
+                        url: item.url || "#"
+                    });
                 }
             }
         });
@@ -96,7 +99,7 @@ window.onload = function () {
 
     function displayGroupList(groupCount, year, data) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2>Publications for Year ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
 
         const list = document.createElement('ul');
 
@@ -104,7 +107,7 @@ window.onload = function () {
             const groupItem = document.createElement('li');
             groupItem.innerHTML = `<strong>${group}</strong>: ${data.count}`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.color = "black";
+            groupItem.style.color = "blue";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(group, data.sub_groups, this);
             });
@@ -124,13 +127,13 @@ window.onload = function () {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
 
-            Object.entries(subGroups).forEach(([subGroup, instances]) => {
+            Object.entries(subGroups).forEach(([subGroup, data]) => {
                 const subGroupItem = document.createElement('li');
-                subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${instances.length})`;
+                subGroupItem.innerHTML = `<strong>${subGroup}</strong>: ${data.count}`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.color = "green";
+                subGroupItem.style.color = "darkgreen";
                 subGroupItem.addEventListener("click", function () {
-                    toggleInstanceList(subGroup, instances, this);
+                    toggleInstances(subGroup, data.instances, this);
                 });
 
                 subGroupList.appendChild(subGroupItem);
@@ -140,22 +143,18 @@ window.onload = function () {
         }
     }
 
-    function toggleInstanceList(subGroup, instances, subGroupItem) {
+    function toggleInstances(subGroup, instances, subGroupItem) {
         let existingList = subGroupItem.querySelector("ul");
 
         if (existingList) {
             subGroupItem.removeChild(existingList); // Collapse if already expanded
         } else {
             const instanceList = document.createElement('ul');
-            instanceList.style.marginLeft = "40px";
+            instanceList.style.marginLeft = "20px";
 
             instances.forEach(instance => {
                 const instanceItem = document.createElement('li');
-                instanceItem.innerHTML = `
-                    <strong>Title:</strong> ${instance.title} <br>
-                    <strong>Authors:</strong> ${instance.authors} <br>
-                    <strong>URL:</strong> <a href="${instance.url}" target="_blank">${instance.url}</a>
-                `;
+                instanceItem.innerHTML = `<strong>${instance.title}</strong> - ${instance.authors} - <a href="${instance.url}" target="_blank">Link</a>`;
                 instanceList.appendChild(instanceItem);
             });
 
