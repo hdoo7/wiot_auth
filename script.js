@@ -42,26 +42,68 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'line',  // Change this from 'bar' to 'line'
+                type: 'line',  // Change to line plot
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Count by Year',
+                        label: 'Number of Publications',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,  // Set border width to 2 for better visibility
-                        fill: false  // Set fill to false for a line chart without filling the area
+                        borderColor: 'purple',
+                        backgroundColor: 'rgba(54, 162, 235, 0)',  // Transparent fill
+                        borderWidth: 2,
+                        pointBackgroundColor: 'orange',  // Markers color
+                        pointBorderColor: 'orange',  // Marker border color
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        tension: 0.3,  // Smooth line
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                lineWidth: 1,
+                                borderDash: [5, 5]
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    return tooltipItem.raw;  // Display the count in tooltip
+                                }
+                            }
                         }
                     }
-                }
+                },
+                plugins: [{
+                    beforeDraw: function(chart) {
+                        let ctx = chart.ctx;
+                        let dataset = chart.data.datasets[0];
+                        // Draw the count annotations on each data point
+                        dataset.data.forEach((point, index) => {
+                            ctx.save();
+                            const x = chart.scales.x.getPixelForValue(dataset.data[index]);
+                            const y = chart.scales.y.getPixelForValue(point);
+                            ctx.fillStyle = 'gray';
+                            ctx.font = '14px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(point, x, y - 5); // Display count slightly above the point
+                            ctx.restore();
+                        });
+                    }
+                }]
             });
         }
     }
