@@ -12,29 +12,23 @@ window.onload = function () {
     });
 
     function processData(data) {
-        const years = data.map(item => {
-            const year = item.year;
-            return year && !isNaN(year) ? Number(year) : null;
-        }).filter(year => year !== null);
-
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
         const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+
         const yearCount = uniqueYears.map(year => ({
             year: year,
             count: years.filter(y => y === year).length
         }));
 
-        const labels = yearCount.map(item => item.year);
-        const counts = yearCount.map(item => item.count);
-
-        if (labels.length > 0 && counts.length > 0) {
+        if (yearCount.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: yearCount.map(item => item.year),
                     datasets: [{
                         label: 'Count by Year',
-                        data: counts,
+                        data: yearCount.map(item => item.count),
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -43,20 +37,12 @@ window.onload = function () {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
+                    scales: { y: { beginAtZero: true } },
                     onClick: function (e) {
                         const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                         if (activePoints.length > 0) {
-                            const clickedIndex = activePoints[0].index;
-                            const clickedYear = labels[clickedIndex];
-
-                            const groupData = data.filter(item => item.year === clickedYear);
-                            const groupCount = countGroupValues(groupData);
-                            displayGroupList(groupCount, clickedYear);
+                            const clickedYear = yearCount[activePoints[0].index].year;
+                            displayGroupList(getGroupData(data, clickedYear), clickedYear);
                         }
                     }
                 }
@@ -66,48 +52,37 @@ window.onload = function () {
         }
     }
 
-    function countGroupValues(groupData) {
-        const groupCount = {};
-
-        groupData.forEach(item => {
-            const groupValue = item.group;
-            const subGroupValue = item.sub_group;
-
-            if (groupValue) {
-                if (!groupCount[groupValue]) {
-                    groupCount[groupValue] = { count: 0, sub_groups: {} };
-                }
-                groupCount[groupValue].count += 1;
-
-                if (subGroupValue) {
-                    if (!groupCount[groupValue].sub_groups[subGroupValue]) {
-                        groupCount[groupValue].sub_groups[subGroupValue] = { count: 0, instances: [] };
-                    }
-                    groupCount[groupValue].sub_groups[subGroupValue].count += 1;
-
-                    groupCount[groupValue].sub_groups[subGroupValue].instances.push({
-                        title: item.title || "No Title",
-                        authors: item.authors || "Unknown Authors",
-                        url: item.url || "#"
-                    });
-                }
+    function getGroupData(data, year) {
+        const groupData = {};
+        data.filter(item => item.year === year).forEach(item => {
+            if (!groupData[item.group]) {
+                groupData[item.group] = { count: 0, sub_groups: {} };
             }
-        });
+            groupData[item.group].count += 1;
 
-        return groupCount;
+            if (!groupData[item.group].sub_groups[item.sub_group]) {
+                groupData[item.group].sub_groups[item.sub_group] = { count: 0, instances: [] };
+            }
+            groupData[item.group].sub_groups[item.sub_group].count += 1;
+            groupData[item.group].sub_groups[item.sub_group].instances.push({
+                title: item.title || "No Title",
+                authors: item.authors || "Unknown Authors",
+                url: item.url || "#"
+            });
+        });
+        return groupData;
     }
 
-    function displayGroupList(groupCount, year) {
+    function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h2>Publications for ${year}:</h2>`;
 
         const list = document.createElement('ul');
-
-        Object.entries(groupCount).forEach(([group, data]) => {
+        Object.entries(groupData).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
             groupItem.innerHTML = `<strong>${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.color = "blue";
+            groupItem.style.color = "black";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
             });
@@ -120,9 +95,8 @@ window.onload = function () {
 
     function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
-
         if (existingList) {
-            groupItem.removeChild(existingList); // Collapse if already expanded
+            existingList.remove(); // Collapse
         } else {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
@@ -131,7 +105,7 @@ window.onload = function () {
                 const subGroupItem = document.createElement('li');
                 subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.color = "darkgreen";
+                subGroupItem.style.color = "black";
                 subGroupItem.addEventListener("click", function () {
                     toggleInstances(subGroupItem, data.instances);
                 });
@@ -145,9 +119,8 @@ window.onload = function () {
 
     function toggleInstances(subGroupItem, instances) {
         let existingList = subGroupItem.querySelector("ul");
-
         if (existingList) {
-            subGroupItem.removeChild(existingList); // Collapse if already expanded
+            existingList.remove(); // Collapse
         } else {
             const instanceList = document.createElement('ul');
             instanceList.style.marginLeft = "20px";
