@@ -124,7 +124,7 @@ window.onload = function () {
                 const subGroupItem = document.createElement('li');
                 subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.padding = "10px 15px";
+                subGroupItem.style.padding = "10px 12px";
                 subGroupItem.style.margin = "5px 0";
                 subGroupItem.style.backgroundColor = "#fafafa";
                 subGroupItem.style.borderRadius = "10px";
@@ -181,9 +181,9 @@ window.onload = function () {
                 const row = document.createElement('tr');
                 row.style.backgroundColor = "#f9f9f9";
                 row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 12px; max-width: 250px; word-wrap: break-word;">${instance.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">
+                    <td style="border: 1px solid #ddd; padding: 8px; max-width: 250px; word-wrap: break-word;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;max-width: 100px;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
                         <a href="${instance.url}" target="_blank" style="color: #0071e3; text-decoration: none; font-weight: 500;">[Link]</a>
                     </td>
                 `;
