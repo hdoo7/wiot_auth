@@ -1,5 +1,4 @@
 window.onload = function () {
-    // Fetch the CSV file and parse it
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
@@ -13,22 +12,17 @@ window.onload = function () {
     });
 
     function processData(data) {
-        // Extract valid years
         const years = data.map(item => {
             const year = item.year;
             return year && !isNaN(year) ? Number(year) : null;
         }).filter(year => year !== null);
 
-        // Get unique years and sort them
         const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-
-        // Count occurrences per year
         const yearCount = uniqueYears.map(year => ({
             year: year,
             count: years.filter(y => y === year).length
         }));
 
-        // Prepare data for the chart
         const labels = yearCount.map(item => item.year);
         const counts = yearCount.map(item => item.count);
 
@@ -48,7 +42,7 @@ window.onload = function () {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,  // Allow resizing
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true
@@ -60,11 +54,8 @@ window.onload = function () {
                             const clickedIndex = activePoints[0].index;
                             const clickedYear = labels[clickedIndex];
 
-                            // Filter data for the clicked year
                             const groupData = data.filter(item => item.year === clickedYear);
                             const groupCount = countGroupValues(groupData);
-
-                            // Display group list
                             displayGroupList(groupCount, clickedYear);
                         }
                     }
@@ -77,12 +68,26 @@ window.onload = function () {
 
     function countGroupValues(groupData) {
         const groupCount = {};
+
         groupData.forEach(item => {
             const groupValue = item.group;
+            const subGroupValue = item.sub_group;
+
             if (groupValue) {
-                groupCount[groupValue] = (groupCount[groupValue] || 0) + 1;
+                if (!groupCount[groupValue]) {
+                    groupCount[groupValue] = { count: 0, sub_groups: {} };
+                }
+                groupCount[groupValue].count += 1;
+
+                if (subGroupValue) {
+                    if (!groupCount[groupValue].sub_groups[subGroupValue]) {
+                        groupCount[groupValue].sub_groups[subGroupValue] = 0;
+                    }
+                    groupCount[groupValue].sub_groups[subGroupValue] += 1;
+                }
             }
         });
+
         return groupCount;
     }
 
@@ -91,12 +96,38 @@ window.onload = function () {
         groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
 
         const list = document.createElement('ul');
-        for (const [group, count] of Object.entries(groupCount)) {
-            const listItem = document.createElement('li');
-            listItem.textContent = `${group}: ${count}`;
-            list.appendChild(listItem);
-        }
+
+        Object.entries(groupCount).forEach(([group, data]) => {
+            const groupItem = document.createElement('li');
+            groupItem.innerHTML = `<strong>${group}</strong>: ${data.count}`;
+            groupItem.style.cursor = "pointer";
+            groupItem.style.color = "blue";
+            groupItem.addEventListener("click", function () {
+                toggleSubGroups(group, data.sub_groups, this);
+            });
+
+            list.appendChild(groupItem);
+        });
 
         groupListDiv.appendChild(list);
+    }
+
+    function toggleSubGroups(group, subGroups, groupItem) {
+        let existingList = groupItem.querySelector("ul");
+
+        if (existingList) {
+            groupItem.removeChild(existingList); // Collapse if already expanded
+        } else {
+            const subGroupList = document.createElement('ul');
+            subGroupList.style.marginLeft = "20px";
+
+            Object.entries(subGroups).forEach(([subGroup, count]) => {
+                const subGroupItem = document.createElement('li');
+                subGroupItem.textContent = `${subGroup}: ${count}`;
+                subGroupList.appendChild(subGroupItem);
+            });
+
+            groupItem.appendChild(subGroupList);
+        }
     }
 };
