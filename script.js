@@ -29,7 +29,7 @@ window.onload = function () {
                     datasets: [{
                         label: 'Count by Year',
                         data: yearCount.map(item => item.count),
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }]
@@ -88,19 +88,19 @@ window.onload = function () {
             groupItem.style.cursor = "pointer";
             groupItem.style.padding = "12px 20px";
             groupItem.style.margin = "8px 0";
-            groupItem.style.backgroundColor = "#f2f2f2";
+            groupItem.style.backgroundColor = "#f7f7f7";
             groupItem.style.borderRadius = "12px";
-            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
             groupItem.style.transition = "background-color 0.3s ease";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
             });
 
             groupItem.addEventListener("mouseenter", () => {
-                groupItem.style.backgroundColor = "#e9e9e9";
+                groupItem.style.backgroundColor = "#e1e1e1";
             });
             groupItem.addEventListener("mouseleave", () => {
-                groupItem.style.backgroundColor = "#f2f2f2";
+                groupItem.style.backgroundColor = "#f7f7f7";
             });
 
             list.appendChild(groupItem);
@@ -156,7 +156,7 @@ window.onload = function () {
             const table = document.createElement('table');
             table.style.marginTop = "20px";
             table.style.borderCollapse = "collapse";
-            table.style.width = "100%";
+            table.style.width = "80%";
             table.style.backgroundColor = "#ffffff";
             table.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
             table.style.borderRadius = "10px";
@@ -168,7 +168,7 @@ window.onload = function () {
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
                 th.style.padding = "12px";
-                th.style.backgroundColor = "#0071e3";  // Apple-inspired blue
+                th.style.backgroundColor = "#ffffff"; 
                 th.style.color = "white";
                 th.style.fontWeight = "600";
                 headerRow.appendChild(th);
