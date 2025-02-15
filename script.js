@@ -29,7 +29,7 @@ window.onload = function () {
                     datasets: [{
                         label: 'Count by Year',
                         data: yearCount.map(item => item.count),
-                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }]
@@ -88,19 +88,19 @@ window.onload = function () {
             groupItem.style.cursor = "pointer";
             groupItem.style.padding = "12px 20px";
             groupItem.style.margin = "8px 0";
-            groupItem.style.backgroundColor = "#f7f7f7";
+            groupItem.style.backgroundColor = "#f2f2f2";
             groupItem.style.borderRadius = "12px";
-            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
+            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
             groupItem.style.transition = "background-color 0.3s ease";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
             });
 
             groupItem.addEventListener("mouseenter", () => {
-                groupItem.style.backgroundColor = "#e1e1e1";
+                groupItem.style.backgroundColor = "#e9e9e9";
             });
             groupItem.addEventListener("mouseleave", () => {
-                groupItem.style.backgroundColor = "#f7f7f7";
+                groupItem.style.backgroundColor = "#f2f2f2";
             });
 
             list.appendChild(groupItem);
@@ -168,7 +168,7 @@ window.onload = function () {
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
                 th.style.padding = "12px";
-                th.style.backgroundColor = "#4CAF50";  // Apple-inspired green
+                th.style.backgroundColor = "#0071e3";  // Apple-inspired blue
                 th.style.color = "white";
                 th.style.fontWeight = "600";
                 headerRow.appendChild(th);
@@ -184,7 +184,7 @@ window.onload = function () {
                     <td style="border: 1px solid #ddd; padding: 12px; max-width: 250px; word-wrap: break-word;">${instance.title}</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${instance.authors}</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">
-                        <a href="${instance.url}" target="_blank" style="color:rgb(191, 213, 192); text-decoration: none; font-weight: 500;">[Link]</a>
+                        <a href="${instance.url}" target="_blank" style="color: #0071e3; text-decoration: none; font-weight: 500;">[Link]</a>
                     </td>
                 `;
                 tbody.appendChild(row);
