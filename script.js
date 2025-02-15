@@ -1,6 +1,6 @@
 window.onload = function () {
     // Fetch the CSV file and parse it
-    Papa.parse("merged_results.csv", {
+    Papa.parse("scholar_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
@@ -42,19 +42,33 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'line',  // Changed to 'line' for line plot
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',  // Dot color
+                        borderColor: 'rgba(54, 162, 235, 1)',  // Line color
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',  // Dot color
+                        pointBorderColor: 'rgba(54, 162, 235, 1)',  // Dot border color
+                        pointRadius: 5,  // Size of the dots
+                        fill: false,  // No fill under the line
+                        tension: 0.1,  // Smooth line
                     }]
                 },
                 options: {
                     responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.raw + ' instances';  // Display count in tooltip
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true
