@@ -107,7 +107,7 @@ window.onload = function () {
                 subGroupItem.style.cursor = "pointer";
                 subGroupItem.style.color = "black";
                 subGroupItem.addEventListener("click", function () {
-                    toggleInstances(subGroupItem, data.instances);
+                    toggleTable(subGroupItem, data.instances);
                 });
 
                 subGroupList.appendChild(subGroupItem);
@@ -117,23 +117,42 @@ window.onload = function () {
         }
     }
 
-    function toggleInstances(subGroupItem, instances) {
-        let existingList = subGroupItem.querySelector("ul");
-        if (existingList) {
-            existingList.remove(); // Collapse
+    function toggleTable(subGroupItem, instances) {
+        let existingTable = subGroupItem.querySelector("table");
+        if (existingTable) {
+            existingTable.remove(); // Collapse
         } else {
-            const instanceList = document.createElement('ul');
-            instanceList.style.marginLeft = "20px";
+            const table = document.createElement('table');
+            table.style.marginLeft = "20px";
+            table.style.borderCollapse = "collapse";
+            table.style.width = "100%";
+            table.border = "1";
 
-            instances.forEach(instance => {
-                const instanceItem = document.createElement('li');
-                instanceItem.innerHTML = `<strong>${instance.title}</strong> - ${instance.authors} - <a href="${instance.url}" target="_blank">[Link]</a>`;
-                instanceItem.style.fontSize = "14px";
-                instanceItem.style.marginBottom = "5px";
-                instanceList.appendChild(instanceItem);
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Title', 'Authors', 'URL'].forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                th.style.border = "1px solid black";
+                th.style.padding = "5px";
+                headerRow.appendChild(th);
             });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
 
-            subGroupItem.appendChild(instanceList);
+            const tbody = document.createElement('tbody');
+            instances.forEach(instance => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="border: 1px solid black; padding: 5px;">${instance.title}</td>
+                    <td style="border: 1px solid black; padding: 5px;">${instance.authors}</td>
+                    <td style="border: 1px solid black; padding: 5px;"><a href="${instance.url}" target="_blank">[Link]</a></td>
+                `;
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            subGroupItem.appendChild(table);
         }
     }
 };
