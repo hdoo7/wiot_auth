@@ -29,7 +29,7 @@ window.onload = function () {
                     datasets: [{
                         label: 'Count by Year',
                         data: yearCount.map(item => item.count),
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }]
@@ -75,14 +75,20 @@ window.onload = function () {
 
     function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2>Publications for ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h2 style="color: #333;">Publications for ${year}:</h2>`;
 
         const list = document.createElement('ul');
+        list.style.listStyleType = "none";
+        list.style.padding = "0";
+
         Object.entries(groupData).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${group}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong style="color: #222; font-size: 16px;">${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.color = "black";
+            groupItem.style.padding = "8px";
+            groupItem.style.margin = "5px 0";
+            groupItem.style.backgroundColor = "#f7f7f7";
+            groupItem.style.borderRadius = "5px";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
             });
@@ -96,18 +102,23 @@ window.onload = function () {
     function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
         if (existingList) {
-            existingList.remove(); // Collapse if already open
+            existingList.remove();
         } else {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
+            subGroupList.style.padding = "5px";
+            subGroupList.style.listStyleType = "none";
 
             Object.entries(subGroups).forEach(([subGroup, data]) => {
                 const subGroupItem = document.createElement('li');
                 subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.color = "black";
+                subGroupItem.style.padding = "6px";
+                subGroupItem.style.margin = "3px 0";
+                subGroupItem.style.backgroundColor = "#e9ecef";
+                subGroupItem.style.borderRadius = "5px";
                 subGroupItem.addEventListener("click", function (event) {
-                    event.stopPropagation(); // Prevent collapsing the parent list
+                    event.stopPropagation();
                     toggleTable(subGroupItem, data.instances);
                 });
 
@@ -121,12 +132,15 @@ window.onload = function () {
     function toggleTable(subGroupItem, instances) {
         let existingTable = subGroupItem.querySelector("table");
         if (existingTable) {
-            existingTable.remove(); // Collapse if already open
+            existingTable.remove();
         } else {
             const table = document.createElement('table');
             table.style.marginTop = "10px";
             table.style.borderCollapse = "collapse";
-            table.style.width = "100%";
+            table.style.width = "95%";
+            table.style.backgroundColor = "#ffffff";
+            table.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+            table.style.borderRadius = "5px";
             table.border = "1";
 
             const thead = document.createElement('thead');
@@ -134,9 +148,10 @@ window.onload = function () {
             ['Title', 'Authors', 'URL'].forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
-                th.style.border = "1px solid black";
-                th.style.padding = "5px";
-                th.style.backgroundColor = "#f2f2f2";
+                th.style.border = "1px solid #ddd";
+                th.style.padding = "8px";
+                th.style.backgroundColor = "#007bff";
+                th.style.color = "white";
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -145,10 +160,13 @@ window.onload = function () {
             const tbody = document.createElement('tbody');
             instances.forEach(instance => {
                 const row = document.createElement('tr');
+                row.style.backgroundColor = "#f9f9f9";
                 row.innerHTML = `
-                    <td style="border: 1px solid black; padding: 5px;">${instance.title}</td>
-                    <td style="border: 1px solid black; padding: 5px;">${instance.authors}</td>
-                    <td style="border: 1px solid black; padding: 5px;"><a href="${instance.url}" target="_blank">[Link]</a></td>
+                    <td style="border: 1px solid #ddd; padding: 8px; max-width: 200px; word-wrap: break-word;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <a href="${instance.url}" target="_blank" style="color: #007bff; text-decoration: none;">[Link]</a>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
