@@ -48,22 +48,36 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'line',  // Change chart type to line
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',  // Light blue color for the dots
+                        borderColor: 'rgba(54, 162, 235, 1)',  // Dark blue color for the line
+                        borderWidth: 2,
+                        fill: false,  // Do not fill the area under the line
+                        pointRadius: 5,  // Size of the dots on the line
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',  // Dot color
+                        pointBorderColor: 'rgba(54, 162, 235, 1)',  // Dot border color
                     }]
                 },
                 options: {
                     responsive: true,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
                         }
                     }
                 }
