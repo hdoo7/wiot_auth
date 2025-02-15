@@ -96,7 +96,7 @@ window.onload = function () {
     function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
         if (existingList) {
-            existingList.remove(); // Collapse if already present
+            existingList.remove(); // Collapse if already open
         } else {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
@@ -121,16 +121,10 @@ window.onload = function () {
     function toggleTable(subGroupItem, instances) {
         let existingTable = subGroupItem.querySelector("table");
         if (existingTable) {
-            existingTable.remove(); // Collapse the table if it's already open
+            existingTable.remove(); // Collapse if already open
         } else {
-            // Remove any previously opened table under the same subGroupItem
-            let previousTable = subGroupItem.parentNode.querySelector("table");
-            if (previousTable) {
-                previousTable.remove();
-            }
-
             const table = document.createElement('table');
-            table.style.marginLeft = "20px";
+            table.style.marginTop = "10px";
             table.style.borderCollapse = "collapse";
             table.style.width = "100%";
             table.border = "1";
@@ -142,6 +136,7 @@ window.onload = function () {
                 th.textContent = text;
                 th.style.border = "1px solid black";
                 th.style.padding = "5px";
+                th.style.backgroundColor = "#f2f2f2";
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
