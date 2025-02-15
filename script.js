@@ -56,7 +56,7 @@ window.onload = function () {
 
                             const groupData = data.filter(item => item.year === clickedYear);
                             const groupCount = countGroupValues(groupData);
-                            displayGroupList(groupCount, clickedYear, data);
+                            displayGroupList(groupCount, clickedYear);
                         }
                     }
                 }
@@ -97,7 +97,7 @@ window.onload = function () {
         return groupCount;
     }
 
-    function displayGroupList(groupCount, year, data) {
+    function displayGroupList(groupCount, year) {
         const groupListDiv = document.getElementById('group-list');
         groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
 
@@ -105,11 +105,11 @@ window.onload = function () {
 
         Object.entries(groupCount).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${group}</strong>: ${data.count}`;
+            groupItem.innerHTML = `<strong>${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.style.color = "blue";
             groupItem.addEventListener("click", function () {
-                toggleSubGroups(group, data.sub_groups, this);
+                toggleSubGroups(groupItem, data.sub_groups);
             });
 
             list.appendChild(groupItem);
@@ -118,7 +118,7 @@ window.onload = function () {
         groupListDiv.appendChild(list);
     }
 
-    function toggleSubGroups(group, subGroups, groupItem) {
+    function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
 
         if (existingList) {
@@ -129,11 +129,11 @@ window.onload = function () {
 
             Object.entries(subGroups).forEach(([subGroup, data]) => {
                 const subGroupItem = document.createElement('li');
-                subGroupItem.innerHTML = `<strong>${subGroup}</strong>: ${data.count}`;
+                subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
                 subGroupItem.style.color = "darkgreen";
                 subGroupItem.addEventListener("click", function () {
-                    toggleInstances(subGroup, data.instances, this);
+                    toggleInstances(subGroupItem, data.instances);
                 });
 
                 subGroupList.appendChild(subGroupItem);
@@ -143,7 +143,7 @@ window.onload = function () {
         }
     }
 
-    function toggleInstances(subGroup, instances, subGroupItem) {
+    function toggleInstances(subGroupItem, instances) {
         let existingList = subGroupItem.querySelector("ul");
 
         if (existingList) {
@@ -154,7 +154,9 @@ window.onload = function () {
 
             instances.forEach(instance => {
                 const instanceItem = document.createElement('li');
-                instanceItem.innerHTML = `<strong>${instance.title}</strong> - ${instance.authors} - <a href="${instance.url}" target="_blank">Link</a>`;
+                instanceItem.innerHTML = `<strong>${instance.title}</strong> - ${instance.authors} - <a href="${instance.url}" target="_blank">[Link]</a>`;
+                instanceItem.style.fontSize = "14px";
+                instanceItem.style.marginBottom = "5px";
                 instanceList.appendChild(instanceItem);
             });
 
