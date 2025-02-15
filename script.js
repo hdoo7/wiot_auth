@@ -121,6 +121,11 @@ window.onload = function () {
         if (existingTable) {
             existingTable.remove(); // Collapse
         } else {
+            let previousTable = document.querySelector("table");
+            if (previousTable) {
+                previousTable.remove();
+            }
+
             const table = document.createElement('table');
             table.style.marginLeft = "20px";
             table.style.borderCollapse = "collapse";
