@@ -66,8 +66,7 @@ window.onload = function () {
                         y: {
                             beginAtZero: true
                         }
-                    }
-                },
+                    },
                     onClick: function (e) {
                         const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                         if (activePoints.length > 0) {
