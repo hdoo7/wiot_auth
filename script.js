@@ -48,7 +48,7 @@ window.onload = function () {
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
-                type: 'line',  // Change chart type to 'line'
+                type: 'line',  // Explicitly set chart type to 'line'
                 data: {
                     labels: labels,
                     datasets: [{
