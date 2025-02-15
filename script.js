@@ -47,7 +47,7 @@ window.onload = function () {
         // Create the plot if there is valid data
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
-            new Chart(ctx, {
+            const chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -65,11 +65,58 @@ window.onload = function () {
                         y: {
                             beginAtZero: true
                         }
+                    },
+                    onClick: function (e) {
+                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (activePoints.length > 0) {
+                            const clickedIndex = activePoints[0].index;
+                            const clickedYear = labels[clickedIndex];
+
+                            // Filter the data for the clicked year and get unique values from the "group" column
+                            const groupData = data.filter(item => item.year === clickedYear);
+                            const groupCount = countGroupValues(groupData);
+
+                            // Display the list of group values and their counts
+                            displayGroupList(groupCount, clickedYear);
+                        }
                     }
                 }
             });
         } else {
             console.error("No valid data available for plotting.");
         }
+    }
+
+    // Function to count occurrences of unique values in the "group" column
+    function countGroupValues(groupData) {
+        const groupCount = {};
+
+        groupData.forEach(item => {
+            const groupValue = item.group;
+            if (groupValue) {
+                if (!groupCount[groupValue]) {
+                    groupCount[groupValue] = 1;
+                } else {
+                    groupCount[groupValue]++;
+                }
+            }
+        });
+
+        return groupCount;
+    }
+
+    // Function to display the group list on the webpage
+    function displayGroupList(groupCount, year) {
+        const groupListDiv = document.getElementById('group-list');
+        groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
+
+        const list = document.createElement('ul');
+        for (const [group, count] of Object.entries(groupCount)) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${group}: ${count}`;
+            list.appendChild(listItem);
+        }
+
+        groupListDiv.appendChild(list);
     }
 };
