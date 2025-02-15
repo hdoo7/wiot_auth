@@ -5,46 +5,33 @@ window.onload = function () {
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            console.log("Parsed Data:", results.data);  // Check the raw parsed data
             processData(results.data);
         },
         error: function (error) {
-            console.error("Error parsing CSV:", error);  // Log any parsing error
+            console.error("Error parsing CSV:", error);
         }
     });
 
-    // Function to process the data and display the plot
     function processData(data) {
-        console.log("Processing Data:", data);  // Check the raw data
-
-        // Extract all years from the data
+        // Extract valid years
         const years = data.map(item => {
             const year = item.year;
-            return year && !isNaN(year) ? Number(year) : null;  // Ensure valid year data
-        }).filter(year => year !== null);  // Filter out invalid years
-        console.log("Extracted Years:", years);  // Log extracted years
+            return year && !isNaN(year) ? Number(year) : null;
+        }).filter(year => year !== null);
 
         // Get unique years and sort them
         const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-        console.log("Unique Years:", uniqueYears);  // Log unique years
 
-        // Count the instances by year
-        const yearCount = uniqueYears.map(year => {
-            return {
-                year: year,
-                count: years.filter(y => y === year).length
-            };
-        });
-        console.log("Year Count:", yearCount);  // Log the year count data
+        // Count occurrences per year
+        const yearCount = uniqueYears.map(year => ({
+            year: year,
+            count: years.filter(y => y === year).length
+        }));
 
-        // Prepare the data for the plot
+        // Prepare data for the chart
         const labels = yearCount.map(item => item.year);
         const counts = yearCount.map(item => item.count);
 
-        console.log("Labels:", labels);  // Check the labels for the x-axis
-        console.log("Counts:", counts);  // Check the counts for the y-axis
-
-        // Create the plot if there is valid data
         if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             const chart = new Chart(ctx, {
@@ -54,14 +41,14 @@ window.onload = function () {
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,  // Allow manual size control
+                    maintainAspectRatio: false,  // Allow resizing
                     scales: {
                         y: {
                             beginAtZero: true
@@ -73,11 +60,11 @@ window.onload = function () {
                             const clickedIndex = activePoints[0].index;
                             const clickedYear = labels[clickedIndex];
 
-                            // Filter the data for the clicked year and get unique values from the "group" column
+                            // Filter data for the clicked year
                             const groupData = data.filter(item => item.year === clickedYear);
                             const groupCount = countGroupValues(groupData);
 
-                            // Display the list of group values and their counts
+                            // Display group list
                             displayGroupList(groupCount, clickedYear);
                         }
                     }
@@ -88,25 +75,17 @@ window.onload = function () {
         }
     }
 
-    // Function to count occurrences of unique values in the "group" column
     function countGroupValues(groupData) {
         const groupCount = {};
-
         groupData.forEach(item => {
             const groupValue = item.group;
             if (groupValue) {
-                if (!groupCount[groupValue]) {
-                    groupCount[groupValue] = 1;
-                } else {
-                    groupCount[groupValue]++;
-                }
+                groupCount[groupValue] = (groupCount[groupValue] || 0) + 1;
             }
         });
-
         return groupCount;
     }
 
-    // Function to display the group list on the webpage
     function displayGroupList(groupCount, year) {
         const groupListDiv = document.getElementById('group-list');
         groupListDiv.innerHTML = `<h2>Group Counts for Year ${year}:</h2>`;
