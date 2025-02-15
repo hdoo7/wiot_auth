@@ -95,9 +95,7 @@ window.onload = function () {
 
     function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
-        if (existingList) {
-            existingList.remove(); // Collapse
-        } else {
+        if (!existingList) {
             const subGroupList = document.createElement('ul');
             subGroupList.style.marginLeft = "20px";
 
@@ -106,7 +104,8 @@ window.onload = function () {
                 subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
                 subGroupItem.style.color = "black";
-                subGroupItem.addEventListener("click", function () {
+                subGroupItem.addEventListener("click", function (event) {
+                    event.stopPropagation(); // Prevent collapsing the parent list
                     toggleTable(subGroupItem, data.instances);
                 });
 
