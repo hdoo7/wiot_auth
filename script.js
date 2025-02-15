@@ -17,32 +17,34 @@ window.onload = function () {
     function processData(data) {
         console.log(data);  // Check if the data is in the correct format
 
-        // Extract years and count the instances by year
-        const yearCount = {};
+        // Extract all years from the data
+        const years = data.map(item => item.year);
         
-        data.forEach(item => {
-            const year = item.year;
-            if (yearCount[year]) {
-                yearCount[year]++;
-            } else {
-                yearCount[year] = 1;
-            }
+        // Get unique years and sort them
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+        
+        // Count the instances by year
+        const yearCount = uniqueYears.map(year => {
+            return {
+                year: year,
+                count: years.filter(y => y === year).length
+            };
         });
 
-        // Prepare data for the plot
-        const years = Object.keys(yearCount);
-        const counts = Object.values(yearCount);
+        // Prepare the data for the plot
+        const labels = yearCount.map(item => item.year);
+        const counts = yearCount.map(item => item.count);
 
-        console.log("Years:", years);
+        console.log("Labels:", labels);
         console.log("Counts:", counts);
 
         // Create the plot if there is valid data
-        if (years.length > 0 && counts.length > 0) {
+        if (labels.length > 0 && counts.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: years,
+                    labels: labels,
                     datasets: [{
                         label: 'Count by Year',
                         data: counts,
