@@ -75,7 +75,7 @@ window.onload = function () {
 
     function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h2 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; color: #333; font-weight: 600;">Publications for ${year}:</h2>`;
+        groupListDiv.innerHTML = `<h3 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; color: #333; font-weight: 500;">Publications for ${year}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
@@ -124,7 +124,7 @@ window.onload = function () {
                 const subGroupItem = document.createElement('li');
                 subGroupItem.innerHTML = `<strong>${subGroup}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
-                subGroupItem.style.padding = "10px 12px";
+                subGroupItem.style.padding = "6px 12px";
                 subGroupItem.style.margin = "5px 0";
                 subGroupItem.style.backgroundColor = "#fafafa";
                 subGroupItem.style.borderRadius = "10px";
