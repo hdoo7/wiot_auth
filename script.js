@@ -86,7 +86,7 @@ window.onload = function () {
             const groupItem = document.createElement('li');
             groupItem.innerHTML = `<strong style="color: #333; font-size: 16px; font-weight: 500;">${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
-            groupItem.style.padding = "12px 20px";
+            groupItem.style.padding = "6px 20px";
             groupItem.style.margin = "8px 0";
             groupItem.style.backgroundColor = "#f7f7f7";
             groupItem.style.borderRadius = "12px";
