@@ -28,28 +28,15 @@
             font-weight: 600;
             color: #333;
         }
-
-        /* Add space between the dropdown and the chart */
-        #groupBy-container {
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 40px; /* Added margin for space below dropdown */
-        }
     </style>
 </head>
 <body>
     <h1>Taxonomy of Wearable Authentication</h1>
-    <div id="groupBy-container">
-        <select id="groupBy">
-            <option value="year">Group By: Year</option>
-            <option value="category">Group By: Category</option>
-        </select>
-    </div>
     <div id="chart-container">
         <canvas id="chart"></canvas>
     </div>
     <div id="group-list" style="margin-top: 20px;"></div>
-
+    
     <script src="script.js"></script>
 </body>
 </html>

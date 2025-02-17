@@ -1,208 +1,115 @@
 window.onload = function () {
-    const dropdown = document.getElementById("groupBy");
-
-    // Set the default value to 'year' when the page is loaded
-    dropdown.value = 'year';
-    
-    // Trigger change event to load the default data (Year-based chart)
-    dropdown.dispatchEvent(new Event('change'));
-
-    dropdown.addEventListener("change", function () {
-        const groupBy = dropdown.value;
-        Papa.parse("merged_results.csv", {
-            download: true,
-            header: true,
-            dynamicTyping: true,
-            complete: function (results) {
-                console.log('Parsed CSV data:', results.data);  // Debugging log to check parsed data
-                processData(results.data, groupBy);
-            },
-            error: function (error) {
-                console.error("Error parsing CSV:", error);
-            }
-        });
+    Papa.parse("merged_results.csv", {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        complete: function (results) {
+            processData(results.data);
+        },
+        error: function (error) {
+            console.error("Error parsing CSV:", error);
+        }
     });
 
-    let chart = null;
+    function processData(data) {
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
 
-    function processData(data, groupBy) {
-        if (chart) {
-            chart.destroy();
-        }
+        const yearCount = uniqueYears.map(year => ({
+            year: year,
+            count: years.filter(y => y === year).length
+        }));
 
-        if (groupBy === 'year') {
-            const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-            const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-            const yearCount = uniqueYears.map(year => ({
-                year: year,
-                count: years.filter(y => y === year).length
-            }));
-
-            if (yearCount.length > 0) {
-                createChart(yearCount, 'Year', data);
-            } else {
-                console.error("No valid data available for Year grouping.");
-            }
-        } else if (groupBy === 'category') {
-            const categories = data.map(item => item.category).filter(category => category).map(String);
-            if (categories.length === 0) {
-                console.error("No valid 'category' data available.");
-                return;
-            }
-
-            const uniqueCategories = [...new Set(categories)];
-            const categoryCount = uniqueCategories.map(category => ({
-                category: category,
-                count: categories.filter(c => c === category).length
-            }));
-
-            if (categoryCount.length > 0) {
-                createChart(categoryCount, 'Category', data);
-            } else {
-                console.error("No valid data available for Category grouping.");
-            }
-        }
-    }
-
-    function createChart(countData, groupType, data) {
-        const ctx = document.getElementById('chart').getContext('2d');
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: countData.map(item => item[groupType.toLowerCase()]),
-                datasets: [{
-                    label: `Count by ${groupType}`,
-                    data: countData.map(item => item.count),
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } },
-                onClick: function (e) {
-                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (activePoints.length > 0) {
-                        const clickedIndex = activePoints[0].index;
-                        const clickedValue = countData[clickedIndex][groupType.toLowerCase()];
-                        console.log(`Clicked on ${groupType}: ${clickedValue}`); // Debugging line
-
-                        // Trigger the display of group lists for year/category
-                        displayGroupList(getGroupData(data, clickedValue, groupType), clickedValue, groupType);
+        if (yearCount.length > 0) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: yearCount.map(item => item.year),
+                    datasets: [{
+                        label: 'Count by Year',
+                        data: yearCount.map(item => item.count),
+                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    onClick: function (e) {
+                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (activePoints.length > 0) {
+                            const clickedYear = yearCount[activePoints[0].index].year;
+                            displayGroupList(getGroupData(data, clickedYear), clickedYear);
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            console.error("No valid data available for plotting.");
+        }
     }
 
-    function getGroupData(data, groupValue, groupType) {
+    function getGroupData(data, year) {
         const groupData = {};
+        data.filter(item => item.year === year).forEach(item => {
+            if (!groupData[item.group]) {
+                groupData[item.group] = { count: 0, sub_groups: {} };
+            }
+            groupData[item.group].count += 1;
 
-        if (groupType === 'year') {
-            // Group by year first, then category
-            data.filter(item => item.year === groupValue).forEach(item => {
-                const category = item.category || 'Unknown Category';
-                if (!groupData[category]) {
-                    groupData[category] = { count: 0, sub_groups: {} };
-                }
-                groupData[category].count += 1;
-
-                const subGroup = item.subcategory || 'Unknown Subgroup';
-                if (!groupData[category].sub_groups[subGroup]) {
-                    groupData[category].sub_groups[subGroup] = { count: 0, instances: [] };
-                }
-                groupData[category].sub_groups[subGroup].count += 1;
-                groupData[category].sub_groups[subGroup].instances.push({
-                    title: item.title || "No Title",
-                    authors: item.authors || "Unknown Authors",
-                    url: item.url || "#"
-                });
+            if (!groupData[item.group].sub_groups[item.sub_group]) {
+                groupData[item.group].sub_groups[item.sub_group] = { count: 0, instances: [] };
+            }
+            groupData[item.group].sub_groups[item.sub_group].count += 1;
+            groupData[item.group].sub_groups[item.sub_group].instances.push({
+                title: item.title || "No Title",
+                authors: item.authors || "Unknown Authors",
+                url: item.url || "#"
             });
-        } else if (groupType === 'category') {
-            // Group by category first, then subcategory
-            data.filter(item => item.category === groupValue).forEach(item => {
-                const subGroup = item.subcategory || 'Unknown Subgroup';
-                if (!groupData[subGroup]) {
-                    groupData[subGroup] = { count: 0, instances: [] };
-                }
-                groupData[subGroup].count += 1;
-                groupData[subGroup].instances.push({
-                    title: item.title || "No Title",
-                    authors: item.authors || "Unknown Authors",
-                    url: item.url || "#"
-                });
-            });
-        }
+        });
         return groupData;
     }
 
-    function displayGroupList(groupData, groupValue, groupType) {
+    function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>${groupType} ${groupValue}:</h3>`;
+        groupListDiv.innerHTML = `<h3 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; color: #333; font-weight: 500;">Publications for ${year}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
         list.style.padding = "0";
         list.style.margin = "0";
 
-        if (groupType === 'year') {
-            // Display categories for the given year
-            Object.entries(groupData).forEach(([category, data]) => {
-                const categoryItem = document.createElement('li');
-                categoryItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
-                categoryItem.style.cursor = "pointer";
-                categoryItem.style.padding = "6px 20px";
-                categoryItem.style.margin = "8px 0";
-                categoryItem.style.backgroundColor = "#f7f7f7";
-                categoryItem.style.borderRadius = "12px";
-                categoryItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
-                categoryItem.style.transition = "background-color 0.3s ease";
-                categoryItem.addEventListener("click", function () {
-                    toggleSubGroups(categoryItem, data.sub_groups, 'subcategory');
-                });
-
-                categoryItem.addEventListener("mouseenter", () => {
-                    categoryItem.style.backgroundColor = "#e1e1e1";
-                });
-                categoryItem.addEventListener("mouseleave", () => {
-                    categoryItem.style.backgroundColor = "#f7f7f7";
-                });
-
-                list.appendChild(categoryItem);
+        Object.entries(groupData).forEach(([group, data]) => {
+            const groupItem = document.createElement('li');
+            groupItem.innerHTML = `<strong style="color: #333; font-size: 16px; font-weight: 500;">${group}</strong> (${data.count})`;
+            groupItem.style.cursor = "pointer";
+            groupItem.style.padding = "6px 20px";
+            groupItem.style.margin = "8px 0";
+            groupItem.style.backgroundColor = "#f7f7f7";
+            groupItem.style.borderRadius = "12px";
+            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
+            groupItem.style.transition = "background-color 0.3s ease";
+            groupItem.addEventListener("click", function () {
+                toggleSubGroups(groupItem, data.sub_groups);
             });
-        } else if (groupType === 'category') {
-            // Display subcategories for the given category
-            Object.entries(groupData).forEach(([subcategory, data]) => {
-                const subCategoryItem = document.createElement('li');
-                subCategoryItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
-                subCategoryItem.style.cursor = "pointer";
-                subCategoryItem.style.padding = "6px 20px";
-                subCategoryItem.style.margin = "8px 0";
-                subCategoryItem.style.backgroundColor = "#f7f7f7";
-                subCategoryItem.style.borderRadius = "12px";
-                subCategoryItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
-                subCategoryItem.style.transition = "background-color 0.3s ease";
-                subCategoryItem.addEventListener("click", function () {
-                    toggleTable(subCategoryItem, data.instances);
-                });
 
-                subCategoryItem.addEventListener("mouseenter", () => {
-                    subCategoryItem.style.backgroundColor = "#e1e1e1";
-                });
-                subCategoryItem.addEventListener("mouseleave", () => {
-                    subCategoryItem.style.backgroundColor = "#f7f7f7";
-                });
-
-                list.appendChild(subCategoryItem);
+            groupItem.addEventListener("mouseenter", () => {
+                groupItem.style.backgroundColor = "#e1e1e1";
             });
-        }
+            groupItem.addEventListener("mouseleave", () => {
+                groupItem.style.backgroundColor = "#f7f7f7";
+            });
+
+            list.appendChild(groupItem);
+        });
 
         groupListDiv.appendChild(list);
     }
 
-    function toggleSubGroups(groupItem, subGroups, groupType) {
+    function toggleSubGroups(groupItem, subGroups) {
         let existingList = groupItem.querySelector("ul");
         if (existingList) {
             existingList.remove();
