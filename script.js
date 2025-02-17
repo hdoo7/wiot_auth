@@ -1,80 +1,125 @@
 window.onload = function () {
 
-    // Create and add the dropdown menu
-    const dropdown = document.createElement("select");
-    dropdown.id = "groupBy";
-    dropdown.innerHTML = `
-        <option value="year">Group By: Year</option>
-        <option value="category">Group By: Category</option>
-    `;
-    document.body.insertBefore(dropdown, document.body.firstChild);
-    
-    Papa.parse("merged_results.csv", {
-        download: true,
-        header: true,
-        dynamicTyping: true,
-        complete: function (results) {
-            processData(results.data);
-        },
-        error: function (error) {
-            console.error("Error parsing CSV:", error);
-        }
+    // Create and add the dropdown menu for grouping
+    const dropdown = document.getElementById("groupBy");
+    dropdown.addEventListener("change", function () {
+        const groupBy = dropdown.value;
+        Papa.parse("merged_results.csv", {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            complete: function (results) {
+                processData(results.data, groupBy);
+            },
+            error: function (error) {
+                console.error("Error parsing CSV:", error);
+            }
+        });
     });
 
-    function processData(data) {
-        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+    let chart = null;  // Global chart reference
 
-        const yearCount = uniqueYears.map(year => ({
-            year: year,
-            count: years.filter(y => y === year).length
-        }));
+    function processData(data, groupBy) {
+        if (chart) {
+            chart.destroy(); // Destroy the existing chart to avoid stacking
+        }
 
-        if (yearCount.length > 0) {
-            const ctx = document.getElementById('chart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: yearCount.map(item => item.year),
-                    datasets: [{
-                        label: 'Count by Year',
-                        data: yearCount.map(item => item.count),
-                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    onClick: function (e) {
-                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                        if (activePoints.length > 0) {
-                            const clickedYear = yearCount[activePoints[0].index].year;
-                            displayGroupList(getGroupData(data, clickedYear), clickedYear);
+        if (groupBy === 'year') {
+            const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+            const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+
+            const yearCount = uniqueYears.map(year => ({
+                year: year,
+                count: years.filter(y => y === year).length
+            }));
+
+            if (yearCount.length > 0) {
+                const ctx = document.getElementById('chart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: yearCount.map(item => item.year),
+                        datasets: [{
+                            label: 'Count by Year',
+                            data: yearCount.map(item => item.count),
+                            backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        onClick: function (e) {
+                            const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                            if (activePoints.length > 0) {
+                                const clickedYear = yearCount[activePoints[0].index].year;
+                                displayGroupList(getGroupData(data, clickedYear), clickedYear);
+                            }
                         }
                     }
-                }
-            });
-        } else {
-            console.error("No valid data available for plotting.");
+                });
+            } else {
+                console.error("No valid data available for plotting.");
+            }
+        } else if (groupBy === 'category') {
+            const categories = data.map(item => item.category).filter(category => category).map(String);
+            const uniqueCategories = [...new Set(categories)];
+
+            const categoryCount = uniqueCategories.map(category => ({
+                category: category,
+                count: categories.filter(c => c === category).length
+            }));
+
+            if (categoryCount.length > 0) {
+                const ctx = document.getElementById('chart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryCount.map(item => item.category),
+                        datasets: [{
+                            label: 'Count by Category',
+                            data: categoryCount.map(item => item.count),
+                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        onClick: function (e) {
+                            const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                            if (activePoints.length > 0) {
+                                const clickedCategory = categoryCount[activePoints[0].index].category;
+                                displayGroupList(getGroupData(data, clickedCategory), clickedCategory);
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.error("No valid data available for plotting.");
+            }
         }
     }
 
-    function getGroupData(data, year) {
+    function getGroupData(data, groupValue) {
         const groupData = {};
-        data.filter(item => item.year === year).forEach(item => {
-            if (!groupData[item.group]) {
-                groupData[item.group] = { count: 0, sub_groups: {} };
+        data.filter(item => item.year === groupValue || item.category === groupValue).forEach(item => {
+            const group = item.group || 'Unknown Group';  // Fallback if no group
+            if (!groupData[group]) {
+                groupData[group] = { count: 0, sub_groups: {} };
             }
-            groupData[item.group].count += 1;
+            groupData[group].count += 1;
 
-            if (!groupData[item.group].sub_groups[item.sub_group]) {
-                groupData[item.group].sub_groups[item.sub_group] = { count: 0, instances: [] };
+            const subGroup = item.sub_group || 'Unknown Sub-group';  // Fallback if no sub_group
+            if (!groupData[group].sub_groups[subGroup]) {
+                groupData[group].sub_groups[subGroup] = { count: 0, instances: [] };
             }
-            groupData[item.group].sub_groups[item.sub_group].count += 1;
-            groupData[item.group].sub_groups[item.sub_group].instances.push({
+            groupData[group].sub_groups[subGroup].count += 1;
+            groupData[group].sub_groups[subGroup].instances.push({
                 title: item.title || "No Title",
                 authors: item.authors || "Unknown Authors",
                 url: item.url || "#"
@@ -83,9 +128,9 @@ window.onload = function () {
         return groupData;
     }
 
-    function displayGroupList(groupData, year) {
+    function displayGroupList(groupData, groupValue) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; color: #333; font-weight: 500;">Publications for ${year}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications for ${groupValue}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
@@ -94,7 +139,7 @@ window.onload = function () {
 
         Object.entries(groupData).forEach(([group, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong style="color: #333; font-size: 16px; font-weight: 500;">${group}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong>${group}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.style.padding = "6px 20px";
             groupItem.style.margin = "8px 0";
@@ -204,4 +249,5 @@ window.onload = function () {
             subGroupItem.appendChild(table);
         }
     }
+
 };
