@@ -1,5 +1,4 @@
 window.onload = function () {
-
     const dropdown = document.getElementById("groupBy");
     
     // Set the default value to 'year'
@@ -45,7 +44,6 @@ window.onload = function () {
                 console.error("No valid data available for Year grouping.");
             }
         } else if (groupBy === 'category') {
-            // Make sure to check for the existence of the 'category' field
             const categories = data.map(item => item.category).filter(category => category).map(String);
             if (categories.length === 0) {
                 console.error("No valid 'category' data available.");
@@ -88,73 +86,119 @@ window.onload = function () {
                     const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                     if (activePoints.length > 0) {
                         const clickedValue = countData[activePoints[0].index][groupType.toLowerCase()];
-                        displayGroupList(getGroupData(data, clickedValue), clickedValue);
+                        displayGroupList(getGroupData(data, clickedValue, groupType), clickedValue, groupType);
                     }
                 }
             }
         });
     }
 
-    function getGroupData(data, groupValue) {
+    function getGroupData(data, groupValue, groupType) {
         const groupData = {};
-        data.filter(item => item.year === groupValue || item.category === groupValue).forEach(item => {
-            const group = item.subcategory || 'Unknown Group';
-            if (!groupData[group]) {
-                groupData[group] = { count: 0, sub_groups: {} };
-            }
-            groupData[group].count += 1;
 
-            const subGroup = item.subcategory || 'Unknown Sub-group';
-            if (!groupData[group].sub_groups[subGroup]) {
-                groupData[group].sub_groups[subGroup] = { count: 0, instances: [] };
-            }
-            groupData[group].sub_groups[subGroup].count += 1;
-            groupData[group].sub_groups[subGroup].instances.push({
-                title: item.title || "No Title",
-                authors: item.authors || "Unknown Authors",
-                url: item.url || "#"
+        if (groupType === 'year') {
+            // Group by year first, then category
+            data.filter(item => item.year === groupValue).forEach(item => {
+                const category = item.category || 'Unknown Category';
+                if (!groupData[category]) {
+                    groupData[category] = { count: 0, sub_groups: {} };
+                }
+                groupData[category].count += 1;
+
+                const subGroup = item.subcategory || 'Unknown Subgroup';
+                if (!groupData[category].sub_groups[subGroup]) {
+                    groupData[category].sub_groups[subGroup] = { count: 0, instances: [] };
+                }
+                groupData[category].sub_groups[subGroup].count += 1;
+                groupData[category].sub_groups[subGroup].instances.push({
+                    title: item.title || "No Title",
+                    authors: item.authors || "Unknown Authors",
+                    url: item.url || "#"
+                });
             });
-        });
+        } else if (groupType === 'category') {
+            // Group by category first, then subcategory
+            data.filter(item => item.category === groupValue).forEach(item => {
+                const subGroup = item.subcategory || 'Unknown Subgroup';
+                if (!groupData[subGroup]) {
+                    groupData[subGroup] = { count: 0, instances: [] };
+                }
+                groupData[subGroup].count += 1;
+                groupData[subGroup].instances.push({
+                    title: item.title || "No Title",
+                    authors: item.authors || "Unknown Authors",
+                    url: item.url || "#"
+                });
+            });
+        }
         return groupData;
     }
 
-    function displayGroupList(groupData, groupValue) {
+    function displayGroupList(groupData, groupValue, groupType) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications for ${groupValue}:</h3>`;
+        groupListDiv.innerHTML = `<h3>${groupType} ${groupValue}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
         list.style.padding = "0";
         list.style.margin = "0";
 
-        Object.entries(groupData).forEach(([group, data]) => {
-            const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${group}</strong> (${data.count})`;
-            groupItem.style.cursor = "pointer";
-            groupItem.style.padding = "6px 20px";
-            groupItem.style.margin = "8px 0";
-            groupItem.style.backgroundColor = "#f7f7f7";
-            groupItem.style.borderRadius = "12px";
-            groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
-            groupItem.style.transition = "background-color 0.3s ease";
-            groupItem.addEventListener("click", function () {
-                toggleSubGroups(groupItem, data.sub_groups);
-            });
+        if (groupType === 'year') {
+            // Display categories for the given year
+            Object.entries(groupData).forEach(([category, data]) => {
+                const categoryItem = document.createElement('li');
+                categoryItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
+                categoryItem.style.cursor = "pointer";
+                categoryItem.style.padding = "6px 20px";
+                categoryItem.style.margin = "8px 0";
+                categoryItem.style.backgroundColor = "#f7f7f7";
+                categoryItem.style.borderRadius = "12px";
+                categoryItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
+                categoryItem.style.transition = "background-color 0.3s ease";
+                categoryItem.addEventListener("click", function () {
+                    toggleSubGroups(categoryItem, data.sub_groups, 'subcategory');
+                });
 
-            groupItem.addEventListener("mouseenter", () => {
-                groupItem.style.backgroundColor = "#e1e1e1";
-            });
-            groupItem.addEventListener("mouseleave", () => {
-                groupItem.style.backgroundColor = "#f7f7f7";
-            });
+                categoryItem.addEventListener("mouseenter", () => {
+                    categoryItem.style.backgroundColor = "#e1e1e1";
+                });
+                categoryItem.addEventListener("mouseleave", () => {
+                    categoryItem.style.backgroundColor = "#f7f7f7";
+                });
 
-            list.appendChild(groupItem);
-        });
+                list.appendChild(categoryItem);
+            });
+        } else if (groupType === 'category') {
+            // Display subcategories for the given category
+            Object.entries(groupData).forEach(([subcategory, data]) => {
+                const subCategoryItem = document.createElement('li');
+                subCategoryItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
+                subCategoryItem.style.cursor = "pointer";
+                subCategoryItem.style.padding = "6px 20px";
+                subCategoryItem.style.margin = "8px 0";
+                subCategoryItem.style.backgroundColor = "#f7f7f7";
+                subCategoryItem.style.borderRadius = "12px";
+                subCategoryItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
+                subCategoryItem.style.transition = "background-color 0.3s ease";
+                subCategoryItem.addEventListener("click", function () {
+                    toggleTable(subCategoryItem, data.instances);
+                });
+
+                subCategoryItem.addEventListener("mouseenter", () => {
+                    subCategoryItem.style.backgroundColor = "#e1e1e1";
+                });
+                subCategoryItem.addEventListener("mouseleave", () => {
+                    subCategoryItem.style.backgroundColor = "#f7f7f7";
+                });
+
+                list.appendChild(subCategoryItem);
+            });
+        }
 
         groupListDiv.appendChild(list);
     }
 
-    function toggleSubGroups(groupItem, subGroups) {
+    function toggleSubGroups(groupItem, subGroups, groupType) {
         let existingList = groupItem.querySelector("ul");
         if (existingList) {
             existingList.remove();
