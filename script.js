@@ -1,10 +1,10 @@
 window.onload = function () {
     const dropdown = document.getElementById("groupBy");
-    
-    // Set the default value to 'year'
+
+    // Set the default value to 'year' when the page is loaded
     dropdown.value = 'year';
     
-    // Trigger change event to load the default data
+    // Trigger change event to load the default data (Year-based chart)
     dropdown.dispatchEvent(new Event('change'));
 
     dropdown.addEventListener("change", function () {
@@ -30,19 +30,20 @@ window.onload = function () {
             chart.destroy();
         }
 
-        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-        const yearCount = uniqueYears.map(year => ({
-            year: year,
-            count: years.filter(y => y === year).length
-        }));
+        if (groupBy === 'year') {
+            const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+            const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+            const yearCount = uniqueYears.map(year => ({
+                year: year,
+                count: years.filter(y => y === year).length
+            }));
 
-        if (yearCount.length > 0) {
-            createChart(yearCount, 'Year');
-        } else {
-            console.error("No valid data available for Year grouping.");
-        }
-        if (groupBy === 'category') {
+            if (yearCount.length > 0) {
+                createChart(yearCount, 'Year', data);
+            } else {
+                console.error("No valid data available for Year grouping.");
+            }
+        } else if (groupBy === 'category') {
             const categories = data.map(item => item.category).filter(category => category).map(String);
             if (categories.length === 0) {
                 console.error("No valid 'category' data available.");
@@ -56,14 +57,14 @@ window.onload = function () {
             }));
 
             if (categoryCount.length > 0) {
-                createChart(categoryCount, 'Category');
+                createChart(categoryCount, 'Category', data);
             } else {
                 console.error("No valid data available for Category grouping.");
             }
         }
     }
 
-    function createChart(countData, groupType) {
+    function createChart(countData, groupType, data) {
         const ctx = document.getElementById('chart').getContext('2d');
         chart = new Chart(ctx, {
             type: 'bar',
@@ -84,7 +85,11 @@ window.onload = function () {
                 onClick: function (e) {
                     const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                     if (activePoints.length > 0) {
-                        const clickedValue = countData[activePoints[0].index][groupType.toLowerCase()];
+                        const clickedIndex = activePoints[0].index;
+                        const clickedValue = countData[clickedIndex][groupType.toLowerCase()];
+                        console.log(`Clicked on ${groupType}: ${clickedValue}`); // Debugging line
+
+                        // Trigger the display of group lists for year/category
                         displayGroupList(getGroupData(data, clickedValue, groupType), clickedValue, groupType);
                     }
                 }
