@@ -39,7 +39,7 @@ window.onload = function () {
             }
         } else if (groupBy === 'category') {
             // Make sure to check for the existence of the 'category' field
-            const categories = data.map(item => item.category).filter(category => category).map(String);
+            const categories = data.map(item => item.group).filter(category => category).map(String);
             if (categories.length === 0) {
                 console.error("No valid 'category' data available.");
                 return;
@@ -90,7 +90,7 @@ window.onload = function () {
 
     function getGroupData(data, groupValue) {
         const groupData = {};
-        data.filter(item => item.year === groupValue || item.category === groupValue).forEach(item => {
+        data.filter(item => item.year === groupValue || item.group === groupValue).forEach(item => {
             const group = item.group || 'Unknown Group';
             if (!groupData[group]) {
                 groupData[group] = { count: 0, sub_groups: {} };
