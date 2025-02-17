@@ -287,5 +287,4 @@ window.onload = function () {
             subGroupItem.appendChild(table);
         }
     }
-
 };
