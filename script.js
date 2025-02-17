@@ -75,7 +75,7 @@ window.onload = function () {
 
     function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; color: #333; font-weight: 500;">Publications for ${year}:</h3>`;
+        groupListDiv.innerHTML = `<h3 style="color: #333; font-weight: 500;">Publications for ${year}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
