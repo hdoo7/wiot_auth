@@ -30,20 +30,19 @@ window.onload = function () {
             chart.destroy();
         }
 
-        if (groupBy === 'year') {
-            const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-            const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-            const yearCount = uniqueYears.map(year => ({
-                year: year,
-                count: years.filter(y => y === year).length
-            }));
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+        const yearCount = uniqueYears.map(year => ({
+            year: year,
+            count: years.filter(y => y === year).length
+        }));
 
-            if (yearCount.length > 0) {
-                createChart(yearCount, 'Year');
-            } else {
-                console.error("No valid data available for Year grouping.");
-            }
-        } else if (groupBy === 'category') {
+        if (yearCount.length > 0) {
+            createChart(yearCount, 'Year');
+        } else {
+            console.error("No valid data available for Year grouping.");
+        }
+        if (groupBy === 'category') {
             const categories = data.map(item => item.category).filter(category => category).map(String);
             if (categories.length === 0) {
                 console.error("No valid 'category' data available.");
