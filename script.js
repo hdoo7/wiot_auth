@@ -93,16 +93,16 @@ window.onload = function () {
         data.filter(item => item.year === groupValue || item.category === groupValue).forEach(item => {
             const group = item.category || 'Unknown Group';
             if (!groupData[group]) {
-                groupData[group] = { count: 0, sub_groups: {} };
+                groupData[group] = { count: 0, subcategorys: {} };
             }
             groupData[group].count += 1;
 
-            const subGroup = item.sub_group || 'Unknown Sub-group';
-            if (!groupData[group].sub_groups[subGroup]) {
-                groupData[group].sub_groups[subGroup] = { count: 0, instances: [] };
+            const subGroup = item.subcategory || 'Unknown Sub-group';
+            if (!groupData[group].subcategorys[subGroup]) {
+                groupData[group].subcategorys[subGroup] = { count: 0, instances: [] };
             }
-            groupData[group].sub_groups[subGroup].count += 1;
-            groupData[group].sub_groups[subGroup].instances.push({
+            groupData[group].subcategorys[subGroup].count += 1;
+            groupData[group].subcategorys[subGroup].instances.push({
                 title: item.title || "No Title",
                 authors: item.authors || "Unknown Authors",
                 url: item.url || "#"
@@ -131,7 +131,7 @@ window.onload = function () {
             groupItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
             groupItem.style.transition = "background-color 0.3s ease";
             groupItem.addEventListener("click", function () {
-                toggleSubGroups(groupItem, data.sub_groups);
+                toggleSubGroups(groupItem, data.subcategorys);
             });
 
             groupItem.addEventListener("mouseenter", () => {
