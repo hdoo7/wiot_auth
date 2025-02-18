@@ -1,11 +1,12 @@
 window.onload = function () {
+    const chartContainer = document.getElementById('chart-container');
     const dropdown = document.createElement('select');
     dropdown.id = 'groupBy';
     dropdown.innerHTML = `
         <option value="year" selected>Year</option>
         <option value="category">Category</option>
     `;
-    document.body.insertBefore(dropdown, document.getElementById('chart'));
+    document.body.insertBefore(dropdown, chartContainer);
 
     dropdown.addEventListener('change', function () {
         location.reload();
@@ -16,6 +17,7 @@ window.onload = function () {
         header: true,
         dynamicTyping: true,
         complete: function (results) {
+            console.log("CSV Data Loaded:", results.data);
             const groupBy = document.getElementById('groupBy').value;
             processData(results.data, groupBy);
         },
@@ -23,6 +25,8 @@ window.onload = function () {
             console.error("Error parsing CSV:", error);
         }
     });
+
+    let chartInstance = null;
 
     function processData(data, groupBy) {
         let groupedData;
@@ -54,7 +58,17 @@ window.onload = function () {
     function renderChart(groupedData, groupBy, data) {
         if (groupedData.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
-            const chart = new Chart(ctx, {
+            console.log("Canvas Context:", ctx);
+            if (!ctx) {
+                console.error("Canvas context not found");
+                return;
+            }
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: groupedData.map(item => item.label),
@@ -71,7 +85,7 @@ window.onload = function () {
                     maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true } },
                     onClick: function (e) {
-                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        const activePoints = chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                         if (activePoints.length > 0) {
                             const clickedLabel = groupedData[activePoints[0].index].label;
                             if (groupBy === 'year') {
