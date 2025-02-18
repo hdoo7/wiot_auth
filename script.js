@@ -1,15 +1,4 @@
 window.onload = function () {
-    const groupBySelect = document.createElement('select');
-    groupBySelect.innerHTML = `
-        <option value="year" selected>Year</option>
-        <option value="category">Category</option>
-    `;
-    document.body.insertBefore(groupBySelect, document.getElementById('chart'));
-
-    groupBySelect.addEventListener('change', function () {
-        fetchDataAndRenderChart(this.value);
-    });
-    
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
