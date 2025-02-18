@@ -9,87 +9,73 @@ window.onload = function () {
     groupBySelect.addEventListener('change', function () {
         fetchDataAndRenderChart(this.value);
     });
-
-    fetchDataAndRenderChart('year'); // Default grouping is by Year
-
-    function fetchDataAndRenderChart(groupBy) {
-        Papa.parse("merged_results.csv", {
-            download: true,
-            header: true,
-            dynamicTyping: true,
-            complete: function (results) {
-                processData(results.data, groupBy);
-            },
-            error: function (error) {
-                console.error("Error parsing CSV:", error);
-            }
-        });
-    }
-
-    function processData(data, groupBy) {
-        let groupedData;
-
-        if (groupBy === 'year') {
-            const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-            const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
-
-            groupedData = uniqueYears.map(year => ({
-                label: year,
-                count: years.filter(y => y === year).length
-            }));
-        } else {
-            const categories = data.map(item => item.category).filter(category => category);
-            const uniqueCategories = [...new Set(categories)];
-
-            groupedData = uniqueCategories.map(category => ({
-                label: category,
-                count: categories.filter(c => c === category).length
-            }));
+    
+    Papa.parse("merged_results.csv", {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        complete: function (results) {
+            processData(results.data);
+        },
+        error: function (error) {
+            console.error("Error parsing CSV:", error);
         }
+    });
 
-        renderChart(groupedData, data, groupBy);
-    }
+    function processData(data) {
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
 
-    function renderChart(groupedData, data, groupBy) {
-        const ctx = document.getElementById('chart').getContext('2d');
-        if (window.myChart) {
-            window.myChart.destroy();
-        }
-        window.myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: groupedData.map(item => item.label),
-                datasets: [{
-                    label: `Count by ${groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}`,
-                    data: groupedData.map(item => item.count),
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } },
-                onClick: function (e) {
-                    const activePoints = window.myChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (activePoints.length > 0) {
-                        const clickedLabel = groupedData[activePoints[0].index].label;
-                        displayGroupList(getGroupData(data, clickedLabel, groupBy), clickedLabel, groupBy);
+        const yearCount = uniqueYears.map(year => ({
+            year: year,
+            count: years.filter(y => y === year).length
+        }));
+
+        if (yearCount.length > 0) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: yearCount.map(item => item.year),
+                    datasets: [{
+                        label: 'Publications by Year',
+                        data: yearCount.map(item => item.count),
+                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    onClick: function (e) {
+                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (activePoints.length > 0) {
+                            const clickedYear = yearCount[activePoints[0].index].year;
+                            displayGroupList(getGroupData(data, clickedYear), clickedYear);
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            console.error("No valid data available for plotting.");
+        }
     }
 
-    function getGroupData(data, label, groupBy) {
+    function getGroupData(data, year) {
         const groupData = {};
-        data.filter(item => item[groupBy] === label).forEach(item => {
-            if (!groupData[item.subcategory]) {
-                groupData[item.subcategory] = { count: 0, instances: [] };
+        data.filter(item => item.year === year).forEach(item => {
+            if (!groupData[item.category]) {
+                groupData[item.category] = { count: 0, sub_groups: {} };
             }
-            groupData[item.subcategory].count += 1;
-            groupData[item.subcategory].instances.push({
+            groupData[item.category].count += 1;
+
+            if (!groupData[item.category].sub_groups[item.subcategory]) {
+                groupData[item.category].sub_groups[item.subcategory] = { count: 0, instances: [] };
+            }
+            groupData[item.category].sub_groups[item.subcategory].count += 1;
+            groupData[item.category].sub_groups[item.subcategory].instances.push({
                 title: item.title || "No Title",
                 authors: item.authors || "Unknown Authors",
                 url: item.url || "#"
@@ -98,39 +84,84 @@ window.onload = function () {
         return groupData;
     }
 
-    function displayGroupList(groupData, label, groupBy) {
+    function displayGroupList(groupData, year) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3 style="color: #333; font-weight: 500;">Publications for ${label}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications for ${year}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
-        list.style.padding = "0";
-        list.style.margin = "0";
-
-        Object.entries(groupData).forEach(([subCategory, data]) => {
-            const subCategoryItem = document.createElement('li');
-            subCategoryItem.innerHTML = `<strong style="color: #333; font-size: 16px; font-weight: 500;">${subCategory}</strong> (${data.count})`;
-            subCategoryItem.style.cursor = "pointer";
-            subCategoryItem.style.padding = "6px 20px";
-            subCategoryItem.style.margin = "8px 0";
-            subCategoryItem.style.backgroundColor = "#f7f7f7";
-            subCategoryItem.style.borderRadius = "12px";
-            subCategoryItem.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.05)";
-            subCategoryItem.style.transition = "background-color 0.3s ease";
-            subCategoryItem.addEventListener("click", function () {
-                toggleTable(subCategoryItem, data.instances);
+        
+        Object.entries(groupData).forEach(([category, data]) => {
+            const groupItem = document.createElement('li');
+            groupItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
+            groupItem.style.cursor = "pointer";
+            groupItem.addEventListener("click", function () {
+                toggleSubGroups(groupItem, data.sub_groups);
             });
-
-            subCategoryItem.addEventListener("mouseenter", () => {
-                subCategoryItem.style.backgroundColor = "#e1e1e1";
-            });
-            subCategoryItem.addEventListener("mouseleave", () => {
-                subCategoryItem.style.backgroundColor = "#f7f7f7";
-            });
-
-            list.appendChild(subCategoryItem);
+            list.appendChild(groupItem);
         });
 
         groupListDiv.appendChild(list);
+    }
+
+    function toggleSubGroups(groupItem, subGroups) {
+        let existingList = groupItem.querySelector("ul");
+        if (existingList) {
+            existingList.remove();
+        } else {
+            const subGroupList = document.createElement('ul');
+            
+            Object.entries(subGroups).forEach(([subcategory, data]) => {
+                const subGroupItem = document.createElement('li');
+                subGroupItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
+                subGroupItem.style.cursor = "pointer";
+                subGroupItem.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    toggleTable(subGroupItem, data.instances);
+                });
+                subGroupList.appendChild(subGroupItem);
+            });
+
+            groupItem.appendChild(subGroupList);
+        }
+    }
+
+    function toggleTable(subGroupItem, instances) {
+        let existingTable = subGroupItem.querySelector("table");
+        if (existingTable) {
+            existingTable.remove();
+        } else {
+            const table = document.createElement('table');
+            table.style.borderCollapse = "collapse";
+            table.style.width = "70%";
+
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Title', 'Authors', 'URL'].forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                th.style.border = "1px solid #ddd";
+                th.style.padding = "8px";
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            instances.forEach(instance => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <a href="${instance.url}" target="_blank">[Link]</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            subGroupItem.appendChild(table);
+        }
     }
 };
