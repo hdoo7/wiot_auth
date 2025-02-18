@@ -122,7 +122,7 @@ window.onload = function () {
         } else {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
-            table.style.width = "100%";
+            table.style.width = "70%";
 
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
