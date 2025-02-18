@@ -1,14 +1,18 @@
 window.onload = function () {
-    const chartContainer = document.getElementById('chart-container');
     const dropdown = document.createElement('select');
     dropdown.id = 'groupBy';
+
+    // Restore previous selection from localStorage
+    const savedGroupBy = localStorage.getItem('groupBy') || 'year';
+
     dropdown.innerHTML = `
-        <option value="year" selected>Year</option>
-        <option value="category">Category</option>
+        <option value="year" ${savedGroupBy === 'year' ? 'selected' : ''}>Year</option>
+        <option value="category" ${savedGroupBy === 'category' ? 'selected' : ''}>Category</option>
     `;
-    document.body.insertBefore(dropdown, chartContainer);
+    document.body.insertBefore(dropdown, document.getElementById('chart'));
 
     dropdown.addEventListener('change', function () {
+        localStorage.setItem('groupBy', dropdown.value);
         location.reload();
     });
 
@@ -17,9 +21,7 @@ window.onload = function () {
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            console.log("CSV Data Loaded:", results.data);
-            const groupBy = document.getElementById('groupBy').value;
-            processData(results.data, groupBy);
+            processData(results.data, savedGroupBy);
         },
         error: function (error) {
             console.error("Error parsing CSV:", error);
@@ -58,17 +60,7 @@ window.onload = function () {
     function renderChart(groupedData, groupBy, data) {
         if (groupedData.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
-            console.log("Canvas Context:", ctx);
-            if (!ctx) {
-                console.error("Canvas context not found");
-                return;
-            }
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
+            const chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: groupedData.map(item => item.label),
@@ -84,15 +76,20 @@ window.onload = function () {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true } },
-                    onClick: function (e) {
-                        const activePoints = chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                        if (activePoints.length > 0) {
-                            const clickedLabel = groupedData[activePoints[0].index].label;
+                    onClick: function (e, activeElements) {
+                        if (activeElements.length > 0) {
+                            const clickedIndex = activeElements[0].index;
+                            const clickedLabel = groupedData[clickedIndex].label;
+    
+                            console.log("Bar clicked:", clickedLabel);
+    
                             if (groupBy === 'year') {
                                 displayGroupList(getCategoryData(data, clickedLabel), clickedLabel);
                             } else {
                                 displayGroupList(getSubcategoryData(data, clickedLabel), clickedLabel);
                             }
+                        } else {
+                            console.log("No active elements detected.");
                         }
                     }
                 }
@@ -100,7 +97,7 @@ window.onload = function () {
         } else {
             console.error("No valid data available for plotting.");
         }
-    }
+    }    
 
     function getCategoryData(data, year) {
         const categoryData = {};
