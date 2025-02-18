@@ -4,31 +4,41 @@ window.onload = function () {
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            processData(results.data);
+            processData(results.data, "year"); // Default group by "year"
         },
         error: function (error) {
             console.error("Error parsing CSV:", error);
         }
     });
 
-    function processData(data) {
-        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
-        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+    // Add event listener for dropdown change
+    document.getElementById('group-by-dropdown').addEventListener('change', function () {
+        const selectedGroup = this.value;
+        Papa.parse("merged_results.csv", {
+            download: true,
+            header: true,
+            dynamicTyping: true,
+            complete: function (results) {
+                processData(results.data, selectedGroup);
+            },
+            error: function (error) {
+                console.error("Error parsing CSV:", error);
+            }
+        });
+    });
 
-        const yearCount = uniqueYears.map(year => ({
-            year: year,
-            count: years.filter(y => y === year).length
-        }));
+    function processData(data, groupBy) {
+        const groupData = groupBy === "year" ? groupByYear(data) : groupByCategory(data);
 
-        if (yearCount.length > 0) {
+        if (groupData.length > 0) {
             const ctx = document.getElementById('chart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: yearCount.map(item => item.year),
+                    labels: groupData.map(item => item.label),
                     datasets: [{
-                        label: 'Publications by Year',
-                        data: yearCount.map(item => item.count),
+                        label: groupBy === "year" ? 'Publications by Year' : 'Publications by Category',
+                        data: groupData.map(item => item.count),
                         backgroundColor: 'rgba(54, 162, 235, 0.3)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
@@ -41,8 +51,9 @@ window.onload = function () {
                     onClick: function (e) {
                         const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                         if (activePoints.length > 0) {
-                            const clickedYear = yearCount[activePoints[0].index].year;
-                            displayGroupList(getGroupData(data, clickedYear), clickedYear);
+                            const clickedLabel = groupData[activePoints[0].index].label;
+                            const clickedData = groupData[activePoints[0].index].data;
+                            displayGroupList(clickedData, clickedLabel, groupBy);
                         }
                     }
                 }
@@ -52,19 +63,47 @@ window.onload = function () {
         }
     }
 
-    function getGroupData(data, year) {
-        const groupData = {};
-        data.filter(item => item.year === year).forEach(item => {
-            if (!groupData[item.category]) {
-                groupData[item.category] = { count: 0, sub_groups: {} };
-            }
-            groupData[item.category].count += 1;
+    function groupByYear(data) {
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
 
-            if (!groupData[item.category].sub_groups[item.subcategory]) {
-                groupData[item.category].sub_groups[item.subcategory] = { count: 0, instances: [] };
+        return uniqueYears.map(year => {
+            const yearData = data.filter(item => item.year === year);
+            return {
+                label: year,
+                count: yearData.length,
+                data: getGroupData(yearData, year)
+            };
+        });
+    }
+
+    function groupByCategory(data) {
+        const categories = [...new Set(data.map(item => item.category).filter(c => c))];
+        return categories.map(category => {
+            const categoryData = data.filter(item => item.category === category);
+            return {
+                label: category,
+                count: categoryData.length,
+                data: getGroupData(categoryData, category)
+            };
+        });
+    }
+
+    function getGroupData(data, groupValue) {
+        const groupData = {};
+        data.forEach(item => {
+            const groupKey = groupValue === "year" ? item.category : item.subcategory;
+            if (!groupData[groupKey]) {
+                groupData[groupKey] = { count: 0, sub_groups: {} };
             }
-            groupData[item.category].sub_groups[item.subcategory].count += 1;
-            groupData[item.category].sub_groups[item.subcategory].instances.push({
+            groupData[groupKey].count += 1;
+
+            const subGroupKey = item.subcategory;
+            if (!groupData[groupKey].sub_groups[subGroupKey]) {
+                groupData[groupKey].sub_groups[subGroupKey] = { count: 0, instances: [] };
+            }
+            groupData[groupKey].sub_groups[subGroupKey].count += 1;
+            groupData[groupKey].sub_groups[subGroupKey].instances.push({
                 title: item.title || "No Title",
                 authors: item.authors || "Unknown Authors",
                 url: item.url || "#"
@@ -73,9 +112,9 @@ window.onload = function () {
         return groupData;
     }
 
-    function displayGroupList(groupData, year) {
+    function displayGroupList(groupData, label, groupBy) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications for ${year}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications for ${label}:</h3>`;
 
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
@@ -85,7 +124,7 @@ window.onload = function () {
             groupItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
-                toggleSubGroups(groupItem, data.sub_groups);
+                toggleSubGroups(groupItem, data.sub_groups, groupBy);
             });
             list.appendChild(groupItem);
         });
@@ -93,7 +132,7 @@ window.onload = function () {
         groupListDiv.appendChild(list);
     }
 
-    function toggleSubGroups(groupItem, subGroups) {
+    function toggleSubGroups(groupItem, subGroups, groupBy) {
         let existingList = groupItem.querySelector("ul");
         if (existingList) {
             existingList.remove();
@@ -122,7 +161,7 @@ window.onload = function () {
         } else {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
-            table.style.width = "70%";
+            table.style.width = "80%";
 
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
