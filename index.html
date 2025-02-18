@@ -28,10 +28,25 @@
             font-weight: 600;
             color: #333;
         }
+
+        #group-by-container {
+            margin: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <h1>Taxonomy of Wearable Authentication</h1>
+
+    <!-- Group by Dropdown -->
+    <div id="group-by-container">
+        <label for="group-by">Group by:</label>
+        <select id="group-by">
+            <option value="year">Year</option>
+            <option value="category">Category</option>
+        </select>
+    </div>
+
     <div id="chart-container">
         <canvas id="chart"></canvas>
     </div>
