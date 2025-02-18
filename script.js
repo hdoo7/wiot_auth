@@ -104,12 +104,12 @@ window.onload = function () {
 
     function getCategoryData(data, year) {
         const categoryData = {};
-        data.filter(item => item.date === year).forEach(item => {
+        data.filter(item => Number(item.date) === Number(year)).forEach(item => {
             if (!categoryData[item.category]) {
                 categoryData[item.category] = { count: 0, sub_groups: {} };
             }
             categoryData[item.category].count += 1;
-
+    
             if (!categoryData[item.category].sub_groups[item.subcategory]) {
                 categoryData[item.category].sub_groups[item.subcategory] = { count: 0, instances: [] };
             }
@@ -121,7 +121,7 @@ window.onload = function () {
             });
         });
         return categoryData;
-    }
+    }    
 
     function getSubcategoryData(data, category) {
         const subcategoryData = {};
