@@ -10,7 +10,7 @@ window.onload = function () {
         fetchDataAndRenderChart(this.value);
     });
 
-    fetchDataAndRenderChart('year');
+    fetchDataAndRenderChart('year'); // Default grouping is by Year
 
     function fetchDataAndRenderChart(groupBy) {
         Papa.parse("merged_results.csv", {
