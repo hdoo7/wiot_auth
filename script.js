@@ -16,7 +16,7 @@ window.onload = function () {
     // Event listener for dropdown change
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
-        processData(window.data);
+        processData(window.data); // Reprocess the data whenever the group changes
     });
 
     function processData(data) {
@@ -84,6 +84,7 @@ window.onload = function () {
     function getGroupData(data, groupItem) {
         const groupData = {};
         if (currentGroup === "year") {
+            // Process for grouping by Year
             data.filter(item => item.year === groupItem.year).forEach(item => {
                 if (!groupData[item.category]) {
                     groupData[item.category] = { count: 0, sub_groups: {} };
@@ -101,7 +102,7 @@ window.onload = function () {
                 });
             });
         } else if (currentGroup === "category") {
-            // Group by category logic
+            // Process for grouping by Category
             data.filter(item => item.category === groupItem.category).forEach(item => {
                 if (!groupData[item.subcategory]) {
                     groupData[item.subcategory] = { count: 0, instances: [] };
