@@ -101,6 +101,7 @@ window.onload = function () {
                 });
             });
         } else if (currentGroup === "category") {
+            // Group by category logic
             data.filter(item => item.category === groupItem.category).forEach(item => {
                 if (!groupData[item.subcategory]) {
                     groupData[item.subcategory] = { count: 0, instances: [] };
