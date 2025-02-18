@@ -1,12 +1,14 @@
 window.onload = function () {
     let currentGroup = "year"; // Default group is by Year
+    let chart = null; // To hold the chart instance
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            processData(results.data);
+            window.data = results.data; // Store data globally for later use
+            processData(window.data);
         },
         error: function (error) {
             console.error("Error parsing CSV:", error);
@@ -20,8 +22,6 @@ window.onload = function () {
     });
 
     function processData(data) {
-        window.data = data; // Save the data globally for later use
-
         let groupCount;
         if (currentGroup === "year") {
             groupCount = getYearCount(data);
@@ -29,36 +29,38 @@ window.onload = function () {
             groupCount = getCategoryCount(data);
         }
 
-        if (groupCount.length > 0) {
-            const ctx = document.getElementById('chart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: groupCount.map(item => currentGroup === "year" ? item.year : item.category),
-                    datasets: [{
-                        label: `Publications by ${currentGroup.charAt(0).toUpperCase() + currentGroup.slice(1)}`,
-                        data: groupCount.map(item => item.count),
-                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    onClick: function (e) {
-                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                        if (activePoints.length > 0) {
-                            const clickedItem = groupCount[activePoints[0].index];
-                            displayGroupList(getGroupData(data, clickedItem), currentGroup);
-                        }
+        // Destroy the old chart if it exists
+        if (chart) {
+            chart.destroy();
+        }
+
+        // Create a new chart
+        const ctx = document.getElementById('chart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: groupCount.map(item => currentGroup === "year" ? item.year : item.category),
+                datasets: [{
+                    label: `Publications by ${currentGroup.charAt(0).toUpperCase() + currentGroup.slice(1)}`,
+                    data: groupCount.map(item => item.count),
+                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                onClick: function (e) {
+                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (activePoints.length > 0) {
+                        const clickedItem = groupCount[activePoints[0].index];
+                        displayGroupList(getGroupData(data, clickedItem), currentGroup);
                     }
                 }
-            });
-        } else {
-            console.error("No valid data available for plotting.");
-        }
+            }
+        });
     }
 
     function getYearCount(data) {
