@@ -1,13 +1,13 @@
 window.onload = function () {
-    let currentGroup = "year";
-    let chart = null;
+    let currentGroup = "year"; // Default group is by Year
+    let chart = null; // To hold the chart instance
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            window.data = results.data;
+            window.data = results.data; // Store data globally for later use
             processData(window.data);
         },
         error: function (error) {
@@ -17,11 +17,16 @@ window.onload = function () {
 
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
-        processData(window.data);
+        processData(window.data); // Reprocess the data whenever the group changes
     });
 
     function processData(data) {
-        let groupCount = currentGroup === "year" ? getYearCount(data) : getCategoryCount(data);
+        let groupCount;
+        if (currentGroup === "year") {
+            groupCount = getYearCount(data);
+        } else {
+            groupCount = getCategoryCount(data);
+        }
 
         if (chart) {
             chart.destroy();
@@ -44,11 +49,15 @@ window.onload = function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { y: { beginAtZero: true } },
-                onClick: function (e, elements) {
-                    if (elements.length > 0) {
-                        const index = elements[0].index;
-                        const clickedItem = groupCount[index];
-                        displayGroupList(getGroupData(data, clickedItem), currentGroup);
+                onClick: function (e) {
+                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (activePoints.length > 0) {
+                        const clickedItem = groupCount[activePoints[0].index];
+                        if (currentGroup === "year") {
+                            displayGroupList(getCategoriesByYear(data, clickedItem.year), "category", clickedItem.year);
+                        } else {
+                            displayGroupList(getSubcategoriesByCategory(data, clickedItem.category), "subcategory", clickedItem.category);
+                        }
                     }
                 }
             }
@@ -73,68 +82,61 @@ window.onload = function () {
             }));
     }
 
-    function getGroupData(data, groupItem) {
-        const groupData = {};
-        if (currentGroup === "year") {
-            data.filter(item => item.year === groupItem.year).forEach(item => {
-                if (!groupData[item.category]) {
-                    groupData[item.category] = { count: 0, subcategories: {} };
-                }
-                groupData[item.category].count++;
-                if (!groupData[item.category].subcategories[item.subcategory]) {
-                    groupData[item.category].subcategories[item.subcategory] = { count: 0, instances: [] };
-                }
-                groupData[item.category].subcategories[item.subcategory].count++;
-                groupData[item.category].subcategories[item.subcategory].instances.push({
-                    title: item.title || "No Title",
-                    authors: item.authors || "Unknown Authors",
-                    url: item.url || "#"
-                });
-            });
-        }
-        return groupData;
+    function getCategoriesByYear(data, year) {
+        const categories = {};
+        data.filter(item => item.year === year).forEach(item => {
+            if (!categories[item.category]) {
+                categories[item.category] = { count: 0 };
+            }
+            categories[item.category].count += 1;
+        });
+        return categories;
     }
 
-    function displayGroupList(groupData, groupType) {
+    function getSubcategoriesByCategory(data, category) {
+        const subcategories = {};
+        data.filter(item => item.category === category).forEach(item => {
+            if (!subcategories[item.subcategory]) {
+                subcategories[item.subcategory] = { count: 0 };
+            }
+            subcategories[item.subcategory].count += 1;
+        });
+        return subcategories;
+    }
+
+    function getInstancesBySubcategory(data, subcategory) {
+        return data.filter(item => item.subcategory === subcategory).map(item => ({
+            title: item.title || "No Title",
+            authors: item.authors || "Unknown Authors",
+            url: item.url || "#"
+        }));
+    }
+
+    function displayGroupList(groupData, groupType, parent) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications by ${capitalize(groupType)}:</h3>`;
+        groupListDiv.innerHTML = `<h3>${capitalize(groupType)}s under ${parent}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
-        Object.entries(groupData).forEach(([category, data]) => {
-            const categoryItem = document.createElement('li');
-            categoryItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
-            categoryItem.style.cursor = "pointer";
-            categoryItem.addEventListener("click", function () {
-                toggleSubcategoryList(categoryItem, data.subcategories);
+        Object.entries(groupData).forEach(([key, data]) => {
+            const groupItem = document.createElement('li');
+            groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
+            groupItem.style.cursor = "pointer";
+            groupItem.addEventListener("click", function () {
+                if (groupType === "category") {
+                    displayGroupList(getSubcategoriesByCategory(window.data, key), "subcategory", key);
+                } else if (groupType === "subcategory") {
+                    displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
+                }
             });
-            list.appendChild(categoryItem);
+            list.appendChild(groupItem);
         });
 
         groupListDiv.appendChild(list);
     }
 
-    function toggleSubcategoryList(categoryItem, subcategories) {
-        let existingList = categoryItem.querySelector("ul");
-        if (existingList) {
-            existingList.remove();
-        } else {
-            const subList = document.createElement('ul');
-            Object.entries(subcategories).forEach(([subcategory, data]) => {
-                const subcategoryItem = document.createElement('li');
-                subcategoryItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
-                subcategoryItem.style.cursor = "pointer";
-                subcategoryItem.addEventListener("click", function () {
-                    toggleTable(subcategoryItem, data.instances);
-                });
-                subList.appendChild(subcategoryItem);
-            });
-            categoryItem.appendChild(subList);
-        }
-    }
-
-    function toggleTable(subcategoryItem, instances) {
-        let existingTable = subcategoryItem.querySelector("table");
+    function displayInstanceTable(groupItem, instances) {
+        let existingTable = groupItem.querySelector("table");
         if (existingTable) {
             existingTable.remove();
         } else {
@@ -167,7 +169,7 @@ window.onload = function () {
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-            subcategoryItem.appendChild(table);
+            groupItem.appendChild(table);
         }
     }
 
