@@ -15,6 +15,7 @@ window.onload = function () {
         }
     });
 
+    // Event listener for dropdown change
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
         processData(window.data); // Reprocess the data whenever the group changes
@@ -28,15 +29,17 @@ window.onload = function () {
             groupCount = getCategoryCount(data);
         }
 
+        // Destroy the old chart if it exists
         if (chart) {
             chart.destroy();
         }
 
+        // Create a new chart
         const ctx = document.getElementById('chart').getContext('2d');
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupCount.map(item => item[currentGroup]),
+                labels: groupCount.map(item => currentGroup === "year" ? item.year : item.category),
                 datasets: [{
                     label: `Publications by ${currentGroup.charAt(0).toUpperCase() + currentGroup.slice(1)}`,
                     data: groupCount.map(item => item.count),
@@ -61,26 +64,47 @@ window.onload = function () {
     }
 
     function getYearCount(data) {
-        return [...new Set(data.map(item => item.year).filter(year => year))]
-            .sort()
-            .map(year => ({
-                year,
-                count: data.filter(item => item.year === year).length
-            }));
+        const years = data.map(item => item.year).filter(year => year && !isNaN(year)).map(Number);
+        const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+
+        return uniqueYears.map(year => ({
+            year: year,
+            count: years.filter(y => y === year).length
+        }));
     }
 
     function getCategoryCount(data) {
-        return [...new Set(data.map(item => item.category).filter(category => category))]
-            .sort()
-            .map(category => ({
-                category,
-                count: data.filter(item => item.category === category).length
-            }));
+        const categories = data.map(item => item.category).filter(cat => cat && item.category).map(String);
+        const uniqueCategories = [...new Set(categories)].sort();
+
+        return uniqueCategories.map(category => ({
+            category: category,
+            count: categories.filter(c => c === category).length
+        }));
     }
 
     function getGroupData(data, groupItem) {
         const groupData = {};
-        if (currentGroup === "category") {
+        if (currentGroup === "year") {
+            // Process for grouping by Year
+            data.filter(item => item.year === groupItem.year).forEach(item => {
+                if (!groupData[item.category]) {
+                    groupData[item.category] = { count: 0, sub_groups: {} };
+                }
+                groupData[item.category].count += 1;
+
+                if (!groupData[item.category].sub_groups[item.subcategory]) {
+                    groupData[item.category].sub_groups[item.subcategory] = { count: 0, instances: [] };
+                }
+                groupData[item.category].sub_groups[item.subcategory].count += 1;
+                groupData[item.category].sub_groups[item.subcategory].instances.push({
+                    title: item.title || "No Title",
+                    authors: item.authors || "Unknown Authors",
+                    url: item.url || "#"
+                });
+            });
+        } else if (currentGroup === "category") {
+            // Process for grouping by Category
             data.filter(item => item.category === groupItem.category).forEach(item => {
                 if (!groupData[item.subcategory]) {
                     groupData[item.subcategory] = { count: 0, instances: [] };
@@ -99,6 +123,7 @@ window.onload = function () {
     function displayGroupList(groupData, groupType) {
         const groupListDiv = document.getElementById('group-list');
         groupListDiv.innerHTML = `<h3>Publications by ${groupType === "year" ? 'Year' : 'Category'}:</h3>`;
+
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
@@ -107,7 +132,7 @@ window.onload = function () {
             groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
-                toggleTable(groupItem, data.instances);
+                toggleSubGroups(groupItem, data.sub_groups || {});
             });
             list.appendChild(groupItem);
         });
@@ -115,8 +140,30 @@ window.onload = function () {
         groupListDiv.appendChild(list);
     }
 
-    function toggleTable(groupItem, instances) {
-        let existingTable = groupItem.querySelector("table");
+    function toggleSubGroups(groupItem, subGroups) {
+        let existingList = groupItem.querySelector("ul");
+        if (existingList) {
+            existingList.remove();
+        } else {
+            const subGroupList = document.createElement('ul');
+
+            Object.entries(subGroups).forEach(([subcategory, data]) => {
+                const subGroupItem = document.createElement('li');
+                subGroupItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
+                subGroupItem.style.cursor = "pointer";
+                subGroupItem.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    toggleTable(subGroupItem, data.instances);
+                });
+                subGroupList.appendChild(subGroupItem);
+            });
+
+            groupItem.appendChild(subGroupList);
+        }
+    }
+
+    function toggleTable(subGroupItem, instances) {
+        let existingTable = subGroupItem.querySelector("table");
         if (existingTable) {
             existingTable.remove();
         } else {
@@ -149,7 +196,8 @@ window.onload = function () {
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-            groupItem.appendChild(table);
+
+            subGroupItem.appendChild(table);
         }
     }
 };
