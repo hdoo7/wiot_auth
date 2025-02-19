@@ -44,10 +44,10 @@ window.onload = function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { y: { beginAtZero: true } },
-                onClick: function (e) {
-                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (activePoints.length > 0) {
-                        const clickedItem = groupCount[activePoints[0].index];
+                onClick: function (e, elements) {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const clickedItem = groupCount[index];
                         displayGroupList(getGroupData(data, clickedItem), currentGroup);
                     }
                 }
