@@ -78,7 +78,7 @@ window.onload = function () {
                 groupData[item.subcategory].instances.push(item);
             });
         } else if (currentGroup === "year") {
-            data.filter(item => item.year === groupItem.year).forEach(item => {
+            data.forEach(item => {
                 if (!groupData[item.category]) {
                     groupData[item.category] = { count: 0, subcategories: {} };
                 }
@@ -95,7 +95,9 @@ window.onload = function () {
 
     function displayGroupList(groupData, groupType) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications by ${groupType.charAt(0).toUpperCase() + groupType.slice(1)}:</h3>`;
+        if (!groupListDiv.innerHTML) {
+            groupListDiv.innerHTML = `<h3>Publications by ${groupType.charAt(0).toUpperCase() + groupType.slice(1)}:</h3>`;
+        }
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
