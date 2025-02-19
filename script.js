@@ -1,13 +1,13 @@
 window.onload = function () {
-    let currentGroup = "year"; // Default group is by Year
-    let chart = null; // To hold the chart instance
+    let currentGroup = "year";
+    let chart = null;
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            window.data = results.data; // Store data globally for later use
+            window.data = results.data;
             processData(window.data);
         },
         error: function (error) {
@@ -17,16 +17,11 @@ window.onload = function () {
 
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
-        processData(window.data); // Reprocess the data whenever the group changes
+        processData(window.data);
     });
 
     function processData(data) {
-        let groupCount;
-        if (currentGroup === "year") {
-            groupCount = getYearCount(data);
-        } else {
-            groupCount = getCategoryCount(data);
-        }
+        let groupCount = (currentGroup === "year") ? getYearCount(data) : getCategoryCount(data);
 
         if (chart) {
             chart.destroy();
@@ -53,11 +48,7 @@ window.onload = function () {
                     const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                     if (activePoints.length > 0) {
                         const clickedItem = groupCount[activePoints[0].index];
-                        if (currentGroup === "year") {
-                            displayGroupList(getCategoriesByYear(data, clickedItem.year), "category", clickedItem.year);
-                        } else {
-                            displayGroupList(getSubcategoriesByCategory(data, clickedItem.category), "subcategory", clickedItem.category);
-                        }
+                        displayGroupList(getGroupData(data, clickedItem), currentGroup);
                     }
                 }
             }
@@ -65,77 +56,68 @@ window.onload = function () {
     }
 
     function getYearCount(data) {
-        return [...new Set(data.map(item => item.year).filter(year => year))]
-            .sort()
-            .map(year => ({
-                year,
-                count: data.filter(item => item.year === year).length
-            }));
-    }
-
-    function getCategoryCount(data) {
-        return [...new Set(data.map(item => item.category).filter(category => category))]
-            .sort()
-            .map(category => ({
-                category,
-                count: data.filter(item => item.category === category).length
-            }));
-    }
-
-    function getCategoriesByYear(data, year) {
-        const categories = {};
-        data.filter(item => item.year === year).forEach(item => {
-            if (!categories[item.category]) {
-                categories[item.category] = { count: 0 };
-            }
-            categories[item.category].count += 1;
-        });
-        return categories;
-    }
-
-    function getSubcategoriesByCategory(data, category) {
-        const subcategories = {};
-        data.filter(item => item.category === category).forEach(item => {
-            if (!subcategories[item.subcategory]) {
-                subcategories[item.subcategory] = { count: 0 };
-            }
-            subcategories[item.subcategory].count += 1;
-        });
-        return subcategories;
-    }
-
-    function getInstancesBySubcategory(data, subcategory) {
-        return data.filter(item => item.subcategory === subcategory).map(item => ({
-            title: item.title || "No Title",
-            authors: item.authors || "Unknown Authors",
-            url: item.url || "#"
+        return [...new Set(data.map(item => item.year))].sort().map(year => ({
+            year,
+            count: data.filter(item => item.year === year).length
         }));
     }
 
-    function displayGroupList(groupData, groupType, parent) {
-        const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>${capitalize(groupType)}s under ${parent}:</h3>`;
-        const list = document.createElement('ul');
-        list.style.listStyleType = "none";
+    function getCategoryCount(data) {
+        return [...new Set(data.map(item => item.category))].sort().map(category => ({
+            category,
+            count: data.filter(item => item.category === category).length
+        }));
+    }
 
-        Object.entries(groupData).forEach(([key, data]) => {
-            const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
-            groupItem.style.cursor = "pointer";
-            groupItem.addEventListener("click", function () {
-                if (groupType === "category") {
-                    displayGroupList(getSubcategoriesByCategory(window.data, key), "subcategory", key);
-                } else if (groupType === "subcategory") {
-                    displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
+    function getGroupData(data, groupItem) {
+        let groupData = {};
+        if (currentGroup === "year") {
+            data.filter(item => item.year === groupItem.year).forEach(item => {
+                if (!groupData[item.category]) {
+                    groupData[item.category] = {};
                 }
+                if (!groupData[item.category][item.subcategory]) {
+                    groupData[item.category][item.subcategory] = [];
+                }
+                groupData[item.category][item.subcategory].push({
+                    title: item.title || "No Title",
+                    authors: item.authors || "Unknown Authors",
+                    url: item.url || "#"
+                });
             });
-            list.appendChild(groupItem);
+        }
+        return groupData;
+    }
+
+    function displayGroupList(groupData, groupType) {
+        const groupListDiv = document.getElementById('group-list');
+        groupListDiv.innerHTML = `<h3>Publications by ${capitalize(groupType)}:</h3>`;
+        const list = document.createElement('ul');
+
+        Object.entries(groupData).forEach(([category, subcategories]) => {
+            const categoryItem = document.createElement('li');
+            categoryItem.innerHTML = `<strong>${category}</strong>`;
+            categoryItem.style.cursor = "pointer";
+            const subList = document.createElement('ul');
+
+            Object.entries(subcategories).forEach(([subcategory, instances]) => {
+                const subItem = document.createElement('li');
+                subItem.innerHTML = `<strong>${subcategory}</strong>`;
+                subItem.style.cursor = "pointer";
+                subItem.addEventListener("click", function () {
+                    toggleTable(subItem, instances);
+                });
+                subList.appendChild(subItem);
+            });
+
+            categoryItem.appendChild(subList);
+            list.appendChild(categoryItem);
         });
 
         groupListDiv.appendChild(list);
     }
 
-    function displayInstanceTable(groupItem, instances) {
+    function toggleTable(groupItem, instances) {
         let existingTable = groupItem.querySelector("table");
         if (existingTable) {
             existingTable.remove();
