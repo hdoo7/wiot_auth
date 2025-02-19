@@ -36,7 +36,7 @@ window.onload = function () {
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupCount.map(item => currentGroup === "year" ? item.year : item.category),
+                labels: groupCount.map(item => item[currentGroup]),
                 datasets: [{
                     label: `Publications by ${currentGroup.charAt(0).toUpperCase() + currentGroup.slice(1)}`,
                     data: groupCount.map(item => item.count),
