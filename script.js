@@ -1,13 +1,13 @@
 window.onload = function () {
-    let currentGroup = "year"; // Default group is by Year
-    let chart = null; // To hold the chart instance
+    let currentGroup = "year";
+    let chart = null;
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            window.data = results.data; // Store data globally for later use
+            window.data = results.data;
             processData(window.data);
         },
         error: function (error) {
@@ -15,18 +15,8 @@ window.onload = function () {
         }
     });
 
-    document.getElementById('group-by').addEventListener('change', function (e) {
-        currentGroup = e.target.value;
-        processData(window.data); // Reprocess the data whenever the group changes
-    });
-
     function processData(data) {
-        let groupCount;
-        if (currentGroup === "year") {
-            groupCount = getYearCount(data);
-        } else {
-            groupCount = getCategoryCount(data);
-        }
+        let groupCount = getYearCount(data);
 
         if (chart) {
             chart.destroy();
@@ -36,9 +26,9 @@ window.onload = function () {
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupCount.map(item => item[currentGroup]),
+                labels: groupCount.map(item => item.year),
                 datasets: [{
-                    label: `Publications by ${capitalize(currentGroup)}`,
+                    label: "Publications by Year",
                     data: groupCount.map(item => item.count),
                     backgroundColor: 'rgba(54, 162, 235, 0.3)',
                     borderColor: 'rgba(54, 162, 235, 1)',
@@ -53,11 +43,7 @@ window.onload = function () {
                     const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                     if (activePoints.length > 0) {
                         const clickedItem = groupCount[activePoints[0].index];
-                        if (currentGroup === "year") {
-                            displayGroupList(getCategoriesByYear(data, clickedItem.year), "category", clickedItem.year);
-                        } else {
-                            displayGroupList(getSubcategoriesByCategory(data, clickedItem.category), "subcategory", clickedItem.category);
-                        }
+                        displayGroupList(getCategoriesByYear(data, clickedItem.year), "category", clickedItem.year);
                     }
                 }
             }
@@ -65,20 +51,11 @@ window.onload = function () {
     }
 
     function getYearCount(data) {
-        return [...new Set(data.map(item => item.year).filter(year => year))]
+        return [...new Set(data.map(item => item.year))]
             .sort()
             .map(year => ({
                 year,
                 count: data.filter(item => item.year === year).length
-            }));
-    }
-
-    function getCategoryCount(data) {
-        return [...new Set(data.map(item => item.category).filter(category => category))]
-            .sort()
-            .map(category => ({
-                category,
-                count: data.filter(item => item.category === category).length
             }));
     }
 
@@ -93,9 +70,9 @@ window.onload = function () {
         return categories;
     }
 
-    function getSubcategoriesByCategory(data, category) {
+    function getSubcategoriesByCategory(data, year, category) {
         const subcategories = {};
-        data.filter(item => item.category === category).forEach(item => {
+        data.filter(item => item.year === year && item.category === category).forEach(item => {
             if (!subcategories[item.subcategory]) {
                 subcategories[item.subcategory] = { count: 0 };
             }
@@ -104,15 +81,11 @@ window.onload = function () {
         return subcategories;
     }
 
-    function getInstancesBySubcategory(data, subcategory) {
-        return data.filter(item => item.subcategory === subcategory).map(item => ({
-            title: item.title || "No Title",
-            authors: item.authors || "Unknown Authors",
-            url: item.url || "#"
-        }));
+    function getInstancesBySubcategory(data, year, category, subcategory) {
+        return data.filter(item => item.year === year && item.category === category && item.subcategory === subcategory);
     }
 
-    function displayGroupList(groupData, groupType, parent) {
+    function displayGroupList(groupData, groupType, parent, year = null, category = null) {
         const groupListDiv = document.getElementById('group-list');
         groupListDiv.innerHTML = `<h3>${capitalize(groupType)}s under ${parent}:</h3>`;
         const list = document.createElement('ul');
@@ -124,9 +97,9 @@ window.onload = function () {
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
                 if (groupType === "category") {
-                    displayInstanceTable(displayGroupList(getSubcategoriesByCategory(window.data, key), "subcategory", key), getInstancesBySubcategory(window.data, key));
+                    displayGroupList(getSubcategoriesByCategory(window.data, year, key), "subcategory", key, year, key);
                 } else if (groupType === "subcategory") {
-                    displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
+                    displayInstanceTable(getInstancesBySubcategory(window.data, year, category, key));
                 }
             });
             list.appendChild(groupItem);
@@ -135,42 +108,44 @@ window.onload = function () {
         groupListDiv.appendChild(list);
     }
 
-    function displayInstanceTable(groupItem, instances) {
-        let existingTable = groupItem.querySelector("table");
+    function displayInstanceTable(instances) {
+        const groupListDiv = document.getElementById('group-list');
+        let existingTable = document.getElementById("instance-table");
         if (existingTable) {
             existingTable.remove();
-        } else {
-            const table = document.createElement('table');
-            table.style.borderCollapse = "collapse";
-            table.style.width = "80%";
-
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            ['Title', 'Authors', 'URL'].forEach(text => {
-                const th = document.createElement('th');
-                th.textContent = text;
-                th.style.border = "1px solid #ddd";
-                th.style.padding = "8px";
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            instances.forEach(instance => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">
-                        <a href="${instance.url}" target="_blank">[Link]</a>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            table.appendChild(tbody);
-            groupItem.appendChild(table);
         }
+
+        const table = document.createElement('table');
+        table.id = "instance-table";
+        table.style.borderCollapse = "collapse";
+        table.style.width = "100%";
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Title', 'Authors', 'URL'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            th.style.border = "1px solid #ddd";
+            th.style.padding = "8px";
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        instances.forEach(instance => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="border: 1px solid #ddd; padding: 8px;">${instance.title || "No Title"}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors || "Unknown Authors"}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                    <a href="${instance.url || "#"}" target="_blank">[Link]</a>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        groupListDiv.appendChild(table);
     }
 
     function capitalize(str) {
