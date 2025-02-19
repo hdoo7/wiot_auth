@@ -1,13 +1,13 @@
 window.onload = function () {
-    let currentGroup = "year"; // Default group is by Year
-    let chart = null; // To hold the chart instance
+    let currentGroup = "year";
+    let chart = null;
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            window.data = results.data; // Store data globally for later use
+            window.data = results.data;
             processData(window.data);
         },
         error: function (error) {
@@ -17,16 +17,11 @@ window.onload = function () {
 
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
-        processData(window.data); // Reprocess the data whenever the group changes
+        processData(window.data);
     });
 
     function processData(data) {
-        let groupCount;
-        if (currentGroup === "year") {
-            groupCount = getYearCount(data);
-        } else {
-            groupCount = getCategoryCount(data);
-        }
+        let groupCount = currentGroup === "year" ? getYearCount(data) : getCategoryCount(data);
 
         if (chart) {
             chart.destroy();
@@ -38,7 +33,7 @@ window.onload = function () {
             data: {
                 labels: groupCount.map(item => item[currentGroup]),
                 datasets: [{
-                    label: `Publications by ${currentGroup.charAt(0).toUpperCase() + currentGroup.slice(1)}`,
+                    label: `Publications by ${capitalize(currentGroup)}`,
                     data: groupCount.map(item => item.count),
                     backgroundColor: 'rgba(54, 162, 235, 0.3)',
                     borderColor: 'rgba(54, 162, 235, 1)',
@@ -80,13 +75,17 @@ window.onload = function () {
 
     function getGroupData(data, groupItem) {
         const groupData = {};
-        if (currentGroup === "category") {
-            data.filter(item => item.category === groupItem.category).forEach(item => {
-                if (!groupData[item.subcategory]) {
-                    groupData[item.subcategory] = { count: 0, instances: [] };
+        if (currentGroup === "year") {
+            data.filter(item => item.year === groupItem.year).forEach(item => {
+                if (!groupData[item.category]) {
+                    groupData[item.category] = { count: 0, subcategories: {} };
                 }
-                groupData[item.subcategory].count += 1;
-                groupData[item.subcategory].instances.push({
+                groupData[item.category].count++;
+                if (!groupData[item.category].subcategories[item.subcategory]) {
+                    groupData[item.category].subcategories[item.subcategory] = { count: 0, instances: [] };
+                }
+                groupData[item.category].subcategories[item.subcategory].count++;
+                groupData[item.category].subcategories[item.subcategory].instances.push({
                     title: item.title || "No Title",
                     authors: item.authors || "Unknown Authors",
                     url: item.url || "#"
@@ -98,25 +97,44 @@ window.onload = function () {
 
     function displayGroupList(groupData, groupType) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications by ${groupType === "year" ? 'Year' : 'Category'}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications by ${capitalize(groupType)}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
-        Object.entries(groupData).forEach(([key, data]) => {
-            const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
-            groupItem.style.cursor = "pointer";
-            groupItem.addEventListener("click", function () {
-                toggleTable(groupItem, data.instances);
+        Object.entries(groupData).forEach(([category, data]) => {
+            const categoryItem = document.createElement('li');
+            categoryItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
+            categoryItem.style.cursor = "pointer";
+            categoryItem.addEventListener("click", function () {
+                toggleSubcategoryList(categoryItem, data.subcategories);
             });
-            list.appendChild(groupItem);
+            list.appendChild(categoryItem);
         });
 
         groupListDiv.appendChild(list);
     }
 
-    function toggleTable(groupItem, instances) {
-        let existingTable = groupItem.querySelector("table");
+    function toggleSubcategoryList(categoryItem, subcategories) {
+        let existingList = categoryItem.querySelector("ul");
+        if (existingList) {
+            existingList.remove();
+        } else {
+            const subList = document.createElement('ul');
+            Object.entries(subcategories).forEach(([subcategory, data]) => {
+                const subcategoryItem = document.createElement('li');
+                subcategoryItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
+                subcategoryItem.style.cursor = "pointer";
+                subcategoryItem.addEventListener("click", function () {
+                    toggleTable(subcategoryItem, data.instances);
+                });
+                subList.appendChild(subcategoryItem);
+            });
+            categoryItem.appendChild(subList);
+        }
+    }
+
+    function toggleTable(subcategoryItem, instances) {
+        let existingTable = subcategoryItem.querySelector("table");
         if (existingTable) {
             existingTable.remove();
         } else {
@@ -149,7 +167,11 @@ window.onload = function () {
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-            groupItem.appendChild(table);
+            subcategoryItem.appendChild(table);
         }
+    }
+
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 };
