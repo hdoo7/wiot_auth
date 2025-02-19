@@ -124,7 +124,7 @@ window.onload = function () {
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
                 if (groupType === "category") {
-                    displayGroupList(getSubcategoriesByCategory(window.data, key), "subcategory", key);
+                    displayInstanceTable(displayGroupList(getSubcategoriesByCategory(window.data, key), "subcategory", key), getInstancesBySubcategory(window.data, key));
                 } else if (groupType === "subcategory") {
                     displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
                 }
