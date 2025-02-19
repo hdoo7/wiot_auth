@@ -56,7 +56,7 @@ window.onload = function () {
                         if (currentGroup === "year") {
                             displayGroupListByYear(getGroupData(data, clickedItem.year), clickedItem.year);
                         } else {
-                            displayGroupList(getSubcategoriesByCategory(data, clickedItem.category), "category", clickedItem.category);
+                            displayGroupListByCategory(getSubcategoriesByCategory(data, clickedItem.category), "category", clickedItem.category);
                         }
                     }
                 }
@@ -184,20 +184,9 @@ window.onload = function () {
             }));
     }
 
-    function getCategoriesByYear(data, year) {
-        const categories = {};
-        data.filter(item => item.year === year).forEach(item => {
-            if (!categories[item.category]) {
-                categories[item.category] = { count: 0 };
-            }
-            categories[item.category].count += 1;
-        });
-        return categories;
-    }
-
-    function getSubcategoriesByCategory(data, year, category) {
+    function getSubcategoriesByCategory(data, category) {
         const subcategories = {};
-        data.filter(item => item.year === year && item.category === category).forEach(item => {
+        data.filter(item => item.category === category).forEach(item => {
             if (!subcategories[item.subcategory]) {
                 subcategories[item.subcategory] = { count: 0 };
             }
@@ -219,7 +208,7 @@ window.onload = function () {
         }
     }
 
-    function displayGroupList(groupData, groupType, parent) {
+    function displayGroupListByCategory(groupData, groupType, parent) {
         const groupListDiv = document.getElementById('group-list');
         groupListDiv.innerHTML = `<h3>${capitalize(groupType)}s under ${parent}:</h3>`;
         const list = document.createElement('ul');
@@ -230,11 +219,7 @@ window.onload = function () {
             groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
-                if (groupType === "year") {
-                    displayGroupList(getSubcategoriesByCategory(window.data, year, key), "category", key);
-                } else if (groupType === "category") {
-                    displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
-                }
+                displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
             });
             list.appendChild(groupItem);
         });
