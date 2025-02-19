@@ -48,7 +48,11 @@ window.onload = function () {
                     const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
                     if (activePoints.length > 0) {
                         const clickedItem = groupCount[activePoints[0].index];
-                        displayGroupList(getGroupData(data, clickedItem), currentGroup);
+                        if (currentGroup === "year") {
+                            displayCategoryList(getCategoriesForYear(data, clickedItem.year));
+                        } else {
+                            displayGroupList(getGroupData(data, clickedItem), currentGroup);
+                        }
                     }
                 }
             }
@@ -69,24 +73,47 @@ window.onload = function () {
         }));
     }
 
-    function getGroupData(data, groupItem) {
-        let groupData = {};
-        if (currentGroup === "year") {
-            data.filter(item => item.year === groupItem.year).forEach(item => {
-                if (!groupData[item.category]) {
-                    groupData[item.category] = {};
-                }
-                if (!groupData[item.category][item.subcategory]) {
-                    groupData[item.category][item.subcategory] = [];
-                }
-                groupData[item.category][item.subcategory].push({
-                    title: item.title || "No Title",
-                    authors: item.authors || "Unknown Authors",
-                    url: item.url || "#"
-                });
+    function getCategoriesForYear(data, year) {
+        let categories = {};
+        data.filter(item => item.year === year).forEach(item => {
+            if (!categories[item.category]) {
+                categories[item.category] = {};
+            }
+        });
+        return categories;
+    }
+
+    function displayCategoryList(categories) {
+        const groupListDiv = document.getElementById('group-list');
+        groupListDiv.innerHTML = `<h3>Categories for Selected Year:</h3>`;
+        const list = document.createElement('ul');
+
+        Object.keys(categories).forEach(category => {
+            const categoryItem = document.createElement('li');
+            categoryItem.innerHTML = `<strong>${category}</strong>`;
+            categoryItem.style.cursor = "pointer";
+            categoryItem.addEventListener("click", function () {
+                displayGroupList(getSubcategoriesForCategory(window.data, category), "category");
             });
-        }
-        return groupData;
+            list.appendChild(categoryItem);
+        });
+
+        groupListDiv.appendChild(list);
+    }
+
+    function getSubcategoriesForCategory(data, category) {
+        let subcategories = {};
+        data.filter(item => item.category === category).forEach(item => {
+            if (!subcategories[item.subcategory]) {
+                subcategories[item.subcategory] = [];
+            }
+            subcategories[item.subcategory].push({
+                title: item.title || "No Title",
+                authors: item.authors || "Unknown Authors",
+                url: item.url || "#"
+            });
+        });
+        return subcategories;
     }
 
     function displayGroupList(groupData, groupType) {
@@ -94,24 +121,14 @@ window.onload = function () {
         groupListDiv.innerHTML = `<h3>Publications by ${capitalize(groupType)}:</h3>`;
         const list = document.createElement('ul');
 
-        Object.entries(groupData).forEach(([category, subcategories]) => {
-            const categoryItem = document.createElement('li');
-            categoryItem.innerHTML = `<strong>${category}</strong>`;
-            categoryItem.style.cursor = "pointer";
-            const subList = document.createElement('ul');
-
-            Object.entries(subcategories).forEach(([subcategory, instances]) => {
-                const subItem = document.createElement('li');
-                subItem.innerHTML = `<strong>${subcategory}</strong>`;
-                subItem.style.cursor = "pointer";
-                subItem.addEventListener("click", function () {
-                    toggleTable(subItem, instances);
-                });
-                subList.appendChild(subItem);
+        Object.entries(groupData).forEach(([subcategory, instances]) => {
+            const subItem = document.createElement('li');
+            subItem.innerHTML = `<strong>${subcategory}</strong>`;
+            subItem.style.cursor = "pointer";
+            subItem.addEventListener("click", function () {
+                toggleTable(subItem, instances);
             });
-
-            categoryItem.appendChild(subList);
-            list.appendChild(categoryItem);
+            list.appendChild(subItem);
         });
 
         groupListDiv.appendChild(list);
