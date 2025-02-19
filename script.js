@@ -1,13 +1,14 @@
 window.onload = function () {
-    let currentGroup = "year"; // Default group is by Year
-    let chart = null; // To hold the chart instance
+    let currentGroup = "year";
+    let chart = null;
+    let expandedElement = null;
 
     Papa.parse("merged_results.csv", {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function (results) {
-            window.data = results.data; // Store data globally for later use
+            window.data = results.data;
             processData(window.data);
         },
         error: function (error) {
@@ -17,7 +18,7 @@ window.onload = function () {
 
     document.getElementById('group-by').addEventListener('change', function (e) {
         currentGroup = e.target.value;
-        processData(window.data); // Reprocess the data whenever the group changes
+        processData(window.data);
     });
 
     function processData(data) {
@@ -78,7 +79,7 @@ window.onload = function () {
                 groupData[item.subcategory].instances.push(item);
             });
         } else if (currentGroup === "year") {
-            data.forEach(item => {
+            data.filter(item => item.year === groupItem.year).forEach(item => {
                 if (!groupData[item.category]) {
                     groupData[item.category] = { count: 0, subcategories: {} };
                 }
@@ -95,9 +96,7 @@ window.onload = function () {
 
     function displayGroupList(groupData, groupType) {
         const groupListDiv = document.getElementById('group-list');
-        if (!groupListDiv.innerHTML) {
-            groupListDiv.innerHTML = `<h3>Publications by ${groupType.charAt(0).toUpperCase() + groupType.slice(1)}:</h3>`;
-        }
+        groupListDiv.innerHTML = `<h3>Publications by ${groupType.charAt(0).toUpperCase() + groupType.slice(1)}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
@@ -106,6 +105,14 @@ window.onload = function () {
             groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
+                if (expandedElement && expandedElement !== groupItem) {
+                    expandedElement.classList.remove("expanded");
+                    expandedElement.innerHTML = `<strong>${expandedElement.dataset.key}</strong> (${expandedElement.dataset.count})`;
+                }
+                expandedElement = groupItem;
+                expandedElement.dataset.key = key;
+                expandedElement.dataset.count = data.count;
+
                 if (groupType === "year") {
                     displayGroupList(data.subcategories, "subcategory");
                 } else {
@@ -114,11 +121,15 @@ window.onload = function () {
             });
             list.appendChild(groupItem);
         });
-
         groupListDiv.appendChild(list);
     }
 
     function toggleTable(groupItem, instances) {
+        if (expandedElement && expandedElement !== groupItem) {
+            expandedElement.classList.remove("expanded");
+            expandedElement.innerHTML = `<strong>${expandedElement.dataset.key}</strong> (${expandedElement.dataset.count})`;
+        }
+        expandedElement = groupItem;
         let existingTable = groupItem.querySelector("table");
         if (existingTable) {
             existingTable.remove();
