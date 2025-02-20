@@ -165,41 +165,37 @@ window.onload = function () {
             subGroupItem.appendChild(table);
         }
     }
+
     function getYearCount(data) {
-        const yearCount = data.reduce((acc, item) => {
-            if (item.year) {
-                acc[item.year] = (acc[item.year] || 0) + 1;
-            }
-            return acc;
-        }, {});
-    
-        return Object.entries(yearCount).map(([year, count]) => ({
-            year,
-            count
-        })).sort((a, b) => a.year - b.year);
-    }    
+        return [...new Set(data.map(item => item.year).filter(year => year))]
+            .sort()
+            .map(year => ({
+                year,
+                count: data.filter(item => item.year === year).length
+            }));
+    }
 
     function getCategoryCount(data) {
-        const categoryCount = data.reduce((acc, item) => {
-            if (item.category) {
-                acc[item.category] = (acc[item.category] || 0) + 1;
-            }
-            return acc;
-        }, {});
-    
-        return Object.entries(categoryCount).map(([category, count]) => ({
-            category,
-            count
-        })).sort((a, b) => a.category.localeCompare(b.category));
+        return [...new Set(data.map(item => item.category).filter(category => category))]
+            .sort()
+            .map(category => ({
+                category,
+                count: data.filter(item => item.category === category).length
+            }));
     }
 
     function getSubcategoriesByCategory(data, category) {
         const subcategories = {};
         data.filter(item => item.category === category).forEach(item => {
             if (!subcategories[item.subcategory]) {
-                subcategories[item.subcategory] = { count: 0 };
+                subcategories[item.subcategory] = { count: 0, instances: [] };
             }
             subcategories[item.subcategory].count += 1;
+            subcategories[item.subcategory].instances.push({
+                title: item.title || "No Title",
+                authors: item.authors || "Unknown Authors",
+                url: item.url || "#"
+            });
         });
         return subcategories;
     }
@@ -217,17 +213,17 @@ window.onload = function () {
         groupListDiv.innerHTML = `<h3>Publications for ${category}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
-
-        Object.entries(groupData).forEach(([key, data]) => {
+    
+        Object.entries(groupData).forEach(([subcategory, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
-                displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
+                displayInstanceTable(groupItem, data.instances);
             });
             list.appendChild(groupItem);
         });
-
+    
         groupListDiv.appendChild(list);
     }
 
