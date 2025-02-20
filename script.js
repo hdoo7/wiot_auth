@@ -195,17 +195,12 @@ window.onload = function () {
         return subcategories;
     }
 
-    function getInstancesBySubcategory(data, year, category, subcategory) {
-        if (year) {
-            return data.filter(item => item.year === year && item.category === category && item.subcategory === subcategory);
-        }
-        else {
-            return data.filter(item => item.subcategory === subcategory).map(item => ({
-                title: item.title || "No Title",
-                authors: item.authors || "Unknown Authors",
-                url: item.url || "#"
-            }));
-        }
+    function getInstancesBySubcategory(data, subcategory) {
+        return data.filter(item => item.subcategory === subcategory).map(item => ({
+            title: item.title || "No Title",
+            authors: item.authors || "Unknown Authors",
+            url: item.url || "#"
+        }));
     }
 
     function displayGroupListByCategory(groupData, groupType, parent) {
