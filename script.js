@@ -165,23 +165,32 @@ window.onload = function () {
             subGroupItem.appendChild(table);
         }
     }
-
     function getYearCount(data) {
-        return [...new Set(data.map(item => item.year).filter(year => year))]
-            .sort()
-            .map(year => ({
-                year,
-                count: data.filter(item => item.year === year).length
-            }));
-    }
+        const yearCount = data.reduce((acc, item) => {
+            if (item.year) {
+                acc[item.year] = (acc[item.year] || 0) + 1;
+            }
+            return acc;
+        }, {});
+    
+        return Object.entries(yearCount).map(([year, count]) => ({
+            year,
+            count
+        })).sort((a, b) => a.year - b.year);
+    }    
 
     function getCategoryCount(data) {
-        return [...new Set(data.map(item => item.category).filter(category => category))]
-            .sort()
-            .map(category => ({
-                category,
-                count: data.filter(item => item.category === category).length
-            }));
+        const categoryCount = data.reduce((acc, item) => {
+            if (item.category) {
+                acc[item.category] = (acc[item.category] || 0) + 1;
+            }
+            return acc;
+        }, {});
+    
+        return Object.entries(categoryCount).map(([category, count]) => ({
+            category,
+            count
+        })).sort((a, b) => a.category.localeCompare(b.category));
     }
 
     function getSubcategoriesByCategory(data, category) {

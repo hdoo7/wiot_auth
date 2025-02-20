@@ -7,14 +7,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        /* Make chart take up nearly half of any screen */
+        /* Make chart take up exactly half of the screen */
         #chart-container {
-            width: 90vw;   /* 90% of the viewport width */
-            height: 45vh;  /* 45% of the viewport height */
-            max-width: 800px;  /* Prevent it from getting too large */
+            width: 50vw;   /* 50% of viewport width */
+            height: 50vh;  /* 50% of viewport height */
+            max-width: 800px;  /* Prevent excessive width */
             max-height: 400px; /* Prevent excessive height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin: auto;
         }
+
         canvas {
             width: 100% !important;
             height: 100% !important;
