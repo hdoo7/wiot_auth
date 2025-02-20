@@ -203,9 +203,9 @@ window.onload = function () {
         }));
     }
 
-    function displayGroupListByCategory(groupData, groupType, parent) {
+    function displayGroupListByCategory(groupData, category) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>${capitalize(groupType)}s under ${parent}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications for ${category}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
