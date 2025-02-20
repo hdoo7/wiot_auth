@@ -92,21 +92,33 @@ window.onload = function () {
 
     function displayGroupList(groupData, title) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3 style="font-size: 1.5em; font-weight: bold; color: #333;">Publications for ${title}:</h3>`;
+        groupListDiv.innerHTML = `<h3 style="font-size: 1.5em; font-weight: bold; color: #333; font-family: 'Roboto', sans-serif;">Publications for ${title}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
         list.style.padding = "0";
     
         Object.entries(groupData).forEach(([key, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong style="color: #007BFF; cursor: pointer;">${key}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong style="color: #007BFF; cursor: pointer; font-family: 'Roboto', sans-serif;">${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.style.marginBottom = "10px";
-            groupItem.style.padding = "5px";
+            groupItem.style.padding = "10px";
             groupItem.style.borderBottom = "1px solid #ddd";
+            groupItem.style.transition = "background-color 0.3s, transform 0.2s";
             groupItem.addEventListener("click", function () {
                 toggleTable(groupItem, data.instances);
             });
+
+            // Adding hover effect
+            groupItem.onmouseover = function () {
+                groupItem.style.backgroundColor = "#f1f1f1";
+                groupItem.style.transform = "scale(1.02)";
+            };
+            groupItem.onmouseleave = function () {
+                groupItem.style.backgroundColor = "";
+                groupItem.style.transform = "scale(1)";
+            };
+
             list.appendChild(groupItem);
         });
     
@@ -134,6 +146,7 @@ window.onload = function () {
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
                 th.style.padding = "10px";
+                th.style.fontFamily = "'Roboto', sans-serif";
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
