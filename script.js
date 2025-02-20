@@ -56,7 +56,7 @@ window.onload = function () {
                         if (currentGroup === "year") {
                             displayGroupListByYear(getGroupData(data, clickedItem.year), clickedItem.year);
                         } else {
-                            displayGroupListByCategory(getSubcategoriesByCategory(data, clickedItem.category), "category", clickedItem.category);
+                            displayGroupListByCategory(getSubcategoriesByCategory(data, clickedItem.category), clickedItem.category);
                         }
                     }
                 }
@@ -198,14 +198,6 @@ window.onload = function () {
             });
         });
         return subcategories;
-    }
-
-    function getInstancesBySubcategory(data, subcategory) {
-        return data.filter(item => item.subcategory === subcategory).map(item => ({
-            title: item.title || "No Title",
-            authors: item.authors || "Unknown Authors",
-            url: item.url || "#"
-        }));
     }
 
     function displayGroupListByCategory(groupData, category) {
