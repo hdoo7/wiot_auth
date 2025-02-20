@@ -92,14 +92,18 @@ window.onload = function () {
 
     function displayGroupList(groupData, title) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications for ${title}:</h3>`;
+        groupListDiv.innerHTML = `<h3 style="font-size: 1.5em; font-weight: bold; color: #333;">Publications for ${title}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
+        list.style.padding = "0";
     
         Object.entries(groupData).forEach(([key, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong style="color: #007BFF; cursor: pointer;">${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
+            groupItem.style.marginBottom = "10px";
+            groupItem.style.padding = "5px";
+            groupItem.style.borderBottom = "1px solid #ddd";
             groupItem.addEventListener("click", function () {
                 toggleTable(groupItem, data.instances);
             });
@@ -117,14 +121,19 @@ window.onload = function () {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
             table.style.width = "90%";
+            table.style.marginTop = "10px";
+            table.style.border = "1px solid #ddd";
 
             const thead = document.createElement('thead');
+            thead.style.backgroundColor = "#f8f9fa";
+            thead.style.fontWeight = "bold";
+            
             const headerRow = document.createElement('tr');
             ['Title', 'Authors', 'URL'].forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
-                th.style.padding = "8px";
+                th.style.padding = "10px";
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -134,10 +143,10 @@ window.onload = function () {
             instances.forEach(instance => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">
-                        <a href="${instance.url}" target="_blank">[Link]</a>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">
+                        <a href="${instance.url}" target="_blank" style="color: #007BFF; text-decoration: none;">[Link]</a>
                     </td>
                 `;
                 tbody.appendChild(row);
