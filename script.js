@@ -134,25 +134,13 @@ window.onload = function () {
         } else {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
-            table.style.width = "80%";
+            table.style.width = "100%";
     
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-    
-            // Default columns
-            let columns = ['Title', 'Authors', 'URL'];
             
-            // Additional columns
-            let extraColumns = ['Accuracy', 'BER', 'EER', 'F1', 'FAR', 'FPR', 'FNR', 'FRR', 'Precision', 'Recall', 'TPR', 'device', 'proposed scheme', 'target goal'];
+            const columns = ['Title', 'Authors', 'URL', 'Accuracy', 'BER', 'EER', 'F1', 'FAR', 'FPR', 'FNR', 'FRR', 'Precision', 'Recall', 'TPR', 'Device', 'Proposed Scheme', 'Target Goal'];
             
-            // Check which extra columns should be included
-            extraColumns.forEach(col => {
-                if (instances.some(instance => instance[col] !== undefined && instance[col] !== '')) {
-                    columns.push(col);
-                }
-            });
-    
-            // Create table headers
             columns.forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
@@ -160,29 +148,30 @@ window.onload = function () {
                 th.style.padding = "8px";
                 headerRow.appendChild(th);
             });
+            
             thead.appendChild(headerRow);
             table.appendChild(thead);
     
             const tbody = document.createElement('tbody');
             instances.forEach(instance => {
                 const row = document.createElement('tr');
-                let rowHTML = `
+                row.innerHTML = `
                     <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">
-                        <a href="${instance.url}" target="_blank">[Link]</a>
-                    </td>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><a href="${instance.url}" target="_blank">[Link]</a></td>
                 `;
-                
+    
                 columns.slice(3).forEach(col => {
-                    rowHTML += `<td style="border: 1px solid #ddd; padding: 8px;">${instance[col] || ''}</td>`;
+                    if (instance[col] && instance[col] !== "") {
+                        row.innerHTML += `<td style="border: 1px solid #ddd; padding: 8px;">${instance[col]}</td>`;
+                    } else {
+                        row.innerHTML += `<td style="border: 1px solid #ddd; padding: 8px;"></td>`;
+                    }
                 });
-                
-                row.innerHTML = rowHTML;
+    
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-    
             subGroupItem.appendChild(table);
         }
     }    
@@ -252,21 +241,10 @@ window.onload = function () {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
             table.style.width = "80%";
-    
+
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-    
-            // Base columns
-            let columns = ['Title', 'Authors', 'URL'];
-    
-            // Additional columns
-            let extraColumns = ['Accuracy', 'BER', 'EER', 'F1', 'FAR', 'FPR', 'FNR', 'FRR', 'Precision', 'Recall', 'TPR', 'Device', 'Proposed Scheme', 'Target Goal'];
-            
-            // Determine which extra columns to include
-            let includedColumns = columns.concat(extraColumns.filter(col => instances.some(instance => instance[col] !== undefined && instance[col] !== "")));
-            
-            // Create header row
-            includedColumns.forEach(text => {
+            ['Title', 'Authors', 'URL'].forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
@@ -275,24 +253,17 @@ window.onload = function () {
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
-    
+
             const tbody = document.createElement('tbody');
             instances.forEach(instance => {
                 const row = document.createElement('tr');
-                
-                includedColumns.forEach(col => {
-                    const td = document.createElement('td');
-                    td.style.border = "1px solid #ddd";
-                    td.style.padding = "8px";
-                    
-                    if (col === 'URL') {
-                        td.innerHTML = `<a href="${instance[col]}" target="_blank">[Link]</a>`;
-                    } else {
-                        td.textContent = instance[col] !== undefined ? instance[col] : '';
-                    }
-                    
-                    row.appendChild(td);
-                });
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <a href="${instance.url}" target="_blank">[Link]</a>
+                    </td>
+                `;
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
