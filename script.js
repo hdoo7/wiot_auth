@@ -134,47 +134,37 @@ window.onload = function () {
         } else {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
-            table.style.width = "100%";
-    
+            table.style.width = "80%";
+
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            
-            const columns = ['Title', 'Authors', 'URL', 'Accuracy', 'BER', 'EER', 'F1', 'FAR', 'FPR', 'FNR', 'FRR', 'Precision', 'Recall', 'TPR', 'Device', 'Proposed Scheme', 'Target Goal'];
-            
-            columns.forEach(text => {
+            ['Title', 'Authors', 'URL'].forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
                 th.style.padding = "8px";
                 headerRow.appendChild(th);
             });
-            
             thead.appendChild(headerRow);
             table.appendChild(thead);
-    
+
             const tbody = document.createElement('tbody');
             instances.forEach(instance => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;"><a href="${instance.url}" target="_blank">[Link]</a></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <a href="${instance.url}" target="_blank">[Link]</a>
+                    </td>
                 `;
-    
-                columns.slice(3).forEach(col => {
-                    if (instance[col] && instance[col] !== "") {
-                        row.innerHTML += `<td style="border: 1px solid #ddd; padding: 8px;">${instance[col]}</td>`;
-                    } else {
-                        row.innerHTML += `<td style="border: 1px solid #ddd; padding: 8px;"></td>`;
-                    }
-                });
-    
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
+
             subGroupItem.appendChild(table);
         }
-    }    
+    }
     
 
     function getYearCount(data) {
