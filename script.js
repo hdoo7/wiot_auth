@@ -117,10 +117,15 @@ window.onload = function () {
             const table = document.createElement('table');
             table.style.borderCollapse = "collapse";
             table.style.width = "90%";
-
+    
+            const columns = ['Title', 'Authors', 'URL', 'Accuracy', 'BER', 'EER', 'F1', 'FAR', 'FPR', 'FNR', 'FRR', 'Precision', 'Recall', 'TPR', 'Device', 'Proposed Scheme', 'Target Goal'];
+            
+            // Filter columns to include only those that have at least one non-empty value
+            const validColumns = columns.filter(col => instances.some(instance => instance[col.toLowerCase()] !== undefined && instance[col.toLowerCase()] !== ""));
+    
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
-            ['Title', 'Authors', 'URL'].forEach(text => {
+            validColumns.forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
                 th.style.border = "1px solid #ddd";
@@ -129,24 +134,25 @@ window.onload = function () {
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
-
+    
             const tbody = document.createElement('tbody');
             instances.forEach(instance => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${instance.authors}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">
-                        <a href="${instance.url}" target="_blank">[Link]</a>
-                    </td>
-                `;
+                row.innerHTML = validColumns.map(col => {
+                    let value = instance[col.toLowerCase()] || '';
+                    if (col === 'URL' && value) {
+                        return `<td style="border: 1px solid #ddd; padding: 8px;"><a href="${value}" target="_blank">[Link]</a></td>`;
+                    }
+                    return `<td style="border: 1px solid #ddd; padding: 8px;">${value}</td>`;
+                }).join('');
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-
+    
             groupItem.appendChild(table);
         }
     }
+    
 
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
