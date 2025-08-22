@@ -1,4 +1,4 @@
-category,subcategory,attributes,title,authors,date,year,Accuracy,BER,EER,F1,FAR,FPR,FNR,FRR,Precision,Recall,TPR,Device,Proposed Scheme,open science,publisher,url,cite,
+interaction_models,modalities,attributes,title,authors,date,year,Accuracy,BER,EER,F1,FAR,FPR,FNR,FRR,Precision,Recall,TPR,Device,Proposed Scheme,open science,publisher,url,cite,
 Device-User Authentication,Behavioral Biometrics,Ambulatory Activities,Implicit sensor-based authentication of smartphone users with smartwatch,"WH Lee, R Lee",2016,2016,92.10%,,,,,,,,,,,Smartwatch,"A authentication system, iAuth, for implicit, continuous authentication of the end-user based on his or her behavioral characteristics, by leveraging the sensors already ubiquitously built into smartphones",No,ACM,https://dl.acm.org/doi/abs/10.1145/2948618.2948627,~\cite{lee2016implicit},
 Device-User Authentication,Behavioral Biometrics,Ambulatory Activities,Activity Recognition using wearable computing,"Neamah Al-Naffakh;
 Nathan Clarke;

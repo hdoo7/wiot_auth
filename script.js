@@ -56,7 +56,7 @@ window.onload = function () {
                         if (currentGroup === "year") {
                             displayGroupListByYear(getGroupData(data, clickedItem.year), clickedItem.year);
                         } else {
-                            displayGroupListByCategory(getSubcategoriesByCategory(data, clickedItem.category), "category", clickedItem.category);
+                            displayGroupListByCategory(getSubcategoriesByCategory(data, clickedItem.interaction_models), "interaction_models", clickedItem.interaction_models);
                         }
                     }
                 }
@@ -67,16 +67,16 @@ window.onload = function () {
     function getGroupData(data, year) {
         const groupData = {};
         data.filter(item => item.year === year).forEach(item => {
-            if (!groupData[item.category]) {
-                groupData[item.category] = { count: 0, sub_groups: {} };
+            if (!groupData[item.interaction_models]) {
+                groupData[item.interaction_models] = { count: 0, sub_groups: {} };
             }
-            groupData[item.category].count += 1;
+            groupData[item.interaction_models].count += 1;
 
-            if (!groupData[item.category].sub_groups[item.subcategory]) {
-                groupData[item.category].sub_groups[item.subcategory] = { count: 0, instances: [] };
+            if (!groupData[item.interaction_models].sub_groups[item.modalities]) {
+                groupData[item.interaction_models].sub_groups[item.modalities] = { count: 0, instances: [] };
             }
-            groupData[item.category].sub_groups[item.subcategory].count += 1;
-            groupData[item.category].sub_groups[item.subcategory].instances.push({
+            groupData[item.interaction_models].sub_groups[item.modalities].count += 1;
+            groupData[item.interaction_models].sub_groups[item.modalities].instances.push({
                 title: item.title || "No Title",
                 authors: item.authors || "Unknown Authors",
                 url: item.url || "#"
@@ -92,9 +92,9 @@ window.onload = function () {
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
         
-        Object.entries(groupData).forEach(([category, data]) => {
+        Object.entries(groupData).forEach(([interaction_models, data]) => {
             const groupItem = document.createElement('li');
-            groupItem.innerHTML = `<strong>${category}</strong> (${data.count})`;
+            groupItem.innerHTML = `<strong>${interaction_models}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
                 toggleSubGroups(groupItem, data.sub_groups);
@@ -112,9 +112,9 @@ window.onload = function () {
         } else {
             const subGroupList = document.createElement('ul');
             
-            Object.entries(subGroups).forEach(([subcategory, data]) => {
+            Object.entries(subGroups).forEach(([modalities, data]) => {
                 const subGroupItem = document.createElement('li');
-                subGroupItem.innerHTML = `<strong>${subcategory}</strong> (${data.count})`;
+                subGroupItem.innerHTML = `<strong>${modalities}</strong> (${data.count})`;
                 subGroupItem.style.cursor = "pointer";
                 subGroupItem.addEventListener("click", function (event) {
                     event.stopPropagation();
@@ -177,36 +177,36 @@ window.onload = function () {
     }
 
     function getCategoryCount(data) {
-        return [...new Set(data.map(item => item.category).filter(category => category))]
+        return [...new Set(data.map(item => item.interaction_models).filter(interaction_models => interaction_models))]
             .sort()
-            .map(category => ({
-                category,
-                count: data.filter(item => item.category === category).length
+            .map(interaction_models => ({
+                interaction_models,
+                count: data.filter(item => item.interaction_models === interaction_models).length
             }));
     }
 
-    function getSubcategoriesByCategory(data, category) {
+    function getSubcategoriesByCategory(data, interaction_models) {
         const subcategories = {};
-        data.filter(item => item.category === category).forEach(item => {
-            if (!subcategories[item.subcategory]) {
-                subcategories[item.subcategory] = { count: 0 };
+        data.filter(item => item.interaction_models === interaction_models).forEach(item => {
+            if (!subcategories[item.modalities]) {
+                subcategories[item.modalities] = { count: 0 };
             }
-            subcategories[item.subcategory].count += 1;
+            subcategories[item.modalities].count += 1;
         });
         return subcategories;
     }
 
-    function getInstancesBySubcategory(data, subcategory) {
-        return data.filter(item => item.subcategory === subcategory).map(item => ({
+    function getInstancesByModalities(data, modalities) {
+        return data.filter(item => item.modalities === modalities).map(item => ({
             title: item.title || "No Title",
             authors: item.authors || "Unknown Authors",
             url: item.url || "#"
         }));
     }
 
-    function displayGroupListByCategory(groupData, category) {
+    function displayGroupListByCategory(groupData, interaction_models) {
         const groupListDiv = document.getElementById('group-list');
-        groupListDiv.innerHTML = `<h3>Publications for ${category}:</h3>`;
+        groupListDiv.innerHTML = `<h3>Publications for ${interaction_models}:</h3>`;
         const list = document.createElement('ul');
         list.style.listStyleType = "none";
 
@@ -215,7 +215,7 @@ window.onload = function () {
             groupItem.innerHTML = `<strong>${key}</strong> (${data.count})`;
             groupItem.style.cursor = "pointer";
             groupItem.addEventListener("click", function () {
-                displayInstanceTable(groupItem, getInstancesBySubcategory(window.data, key));
+                displayInstanceTable(groupItem, getInstancesByModalities(window.data, key));
             });
             list.appendChild(groupItem);
         });
